@@ -1,0 +1,304 @@
+{
+  "version": "2.0.0",
+  "name": "Pacific Labs LMS - Advanced Video System",
+  "description": "Sistema avanzado de gestión de videos con Google Cloud Storage, analytics en tiempo real y calidad adaptiva",
+  
+  "videoProcessing": {
+    "supportedFormats": ["mp4", "webm", "mov", "avi"],
+    "maxFileSize": "500MB",
+    "adaptiveQualities": {
+      "480p": {
+        "resolution": "854x480",
+        "bitrate": "1000k",
+        "audioBitrate": "128k",
+        "description": "Calidad básica para conexiones lentas"
+      },
+      "720p": {
+        "resolution": "1280x720", 
+        "bitrate": "2500k",
+        "audioBitrate": "192k",
+        "description": "Calidad estándar HD"
+      },
+      "1080p": {
+        "resolution": "1920x1080",
+        "bitrate": "5000k", 
+        "audioBitrate": "256k",
+        "description": "Calidad alta Full HD"
+      }
+    },
+    "autoQualitySelection": {
+      "enabled": true,
+      "networkSpeedDetection": true,
+      "fallbackQuality": "720p"
+    }
+  },
+
+  "storage": {
+    "provider": "google-cloud",
+    "bucketStructure": {
+      "pattern": "courses/{courseKey}/lessons/{lessonKey}/videos/{videoKey}/{quality}/",
+      "publicAccess": true,
+      "cacheControl": "public, max-age=31536000",
+      "compressionEnabled": true
+    },
+    "cleanup": {
+      "tempFilesRetentionDays": 7,
+      "autoCleanupEnabled": true,
+      "cleanupSchedule": "0 2 * * *"
+    }
+  },
+
+  "analytics": {
+    "trackingEnabled": true,
+    "trackingInterval": 5000,
+    "events": {
+      "play": { "enabled": true, "priority": "high" },
+      "pause": { "enabled": true, "priority": "medium" },
+      "seek": { "enabled": true, "priority": "medium" },
+      "complete": { "enabled": true, "priority": "high" },
+      "quality_change": { "enabled": true, "priority": "low" },
+      "speed_change": { "enabled": true, "priority": "low" },
+      "progress": { "enabled": true, "priority": "medium", "milestones": [25, 50, 75, 90] }
+    },
+    "completion": {
+      "threshold": 90,
+      "autoMarkComplete": true
+    },
+    "dropoffDetection": {
+      "enabled": true,
+      "minimumEvents": 10,
+      "alertThreshold": 50
+    }
+  },
+
+  "courses": {
+    "ia-basico": {
+      "name": "IA Básico - Certificación Profesional",
+      "description": "Curso fundamental de Inteligencia Artificial",
+      "estimatedDuration": "40 horas",
+      "lessons": {
+        "leccion-1": {
+          "name": "Fundamentos de IA",
+          "description": "Introducción a la Inteligencia Artificial",
+          "estimatedDuration": "3 horas",
+          "videos": {
+            "video-principal": {
+              "title": "🎥 Video: Fundamentos de IA",
+              "description": "Conceptos básicos y definiciones",
+              "duration": "30 min",
+              "filename": "fundamentos-ia.mp4",
+              "type": "lecture"
+            },
+            "tesla-caso": {
+              "title": "📖 Estudio de Caso: Tesla",
+              "description": "Análisis del uso de IA en Tesla",
+              "duration": "20 min", 
+              "filename": "tesla-caso-estudio.mp4",
+              "type": "case_study"
+            },
+            "laboratorio-intro": {
+              "title": "🧪 Laboratorio: Google Cloud",
+              "description": "Introducción práctica a herramientas de IA",
+              "duration": "15 min",
+              "filename": "lab-google-cloud.mp4",
+              "type": "lab"
+            },
+            "quiz-explicacion": {
+              "title": "📝 Quiz: Conceptos Fundamentales", 
+              "description": "Evaluación de conocimientos básicos",
+              "duration": "5 min",
+              "filename": "quiz-explicacion.mp4",
+              "type": "assessment"
+            }
+          }
+        },
+        "leccion-2": {
+          "name": "Tipos de Machine Learning",
+          "description": "Clasificación y tipos de aprendizaje automático",
+          "estimatedDuration": "4 horas",
+          "videos": {
+            "ml-tipos": {
+              "title": "🎥 Video: Tipos de ML",
+              "description": "Supervisado, no supervisado y por refuerzo",
+              "duration": "35 min",
+              "filename": "tipos-machine-learning.mp4",
+              "type": "lecture"
+            },
+            "netflix-caso": {
+              "title": "📖 Estudio de Caso: Netflix",
+              "description": "Sistema de recomendaciones de Netflix",
+              "duration": "25 min",
+              "filename": "netflix-recomendaciones.mp4", 
+              "type": "case_study"
+            }
+          }
+        }
+      }
+    },
+    "ia-intermedio": {
+      "name": "IA Intermedio - Certificación Profesional",
+      "description": "Curso avanzado de técnicas de IA",
+      "estimatedDuration": "60 horas",
+      "lessons": {
+        "leccion-1": {
+          "name": "Deep Learning Avanzado",
+          "description": "Redes neuronales profundas y arquitecturas",
+          "estimatedDuration": "5 horas",
+          "videos": {
+            "deep-learning": {
+              "title": "🎥 Video: Deep Learning",
+              "description": "Introducción a redes neuronales profundas",
+              "duration": "40 min",
+              "filename": "deep-learning-avanzado.mp4",
+              "type": "lecture"
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "optimization": {
+    "ffmpeg": {
+      "preset": "medium",
+      "crf": 23,
+      "faststart": true,
+      "maxConcurrentJobs": 3
+    },
+    "cdn": {
+      "enabled": false,
+      "provider": "cloudflare",
+      "cacheTtl": "1y"
+    },
+    "thumbnails": {
+      "enabled": true,
+      "generateAt": [5, 30, 60],
+      "quality": 80,
+      "size": "320x180"
+    }
+  },
+
+  "security": {
+    "signedUrls": {
+      "enabled": false,
+      "expirationHours": 2,
+      "description": "URLs firmadas para videos privados"
+    },
+    "accessControl": {
+      "requireAuth": true,
+      "checkCourseEnrollment": true,
+      "allowPreview": true,
+      "previewDuration": 30
+    }
+  },
+
+  "notifications": {
+    "instructorAlerts": {
+      "dropoffPatterns": true,
+      "lowCompletionRates": true,
+      "technicalIssues": true
+    },
+    "studentReminders": {
+      "incompleteLessons": true,
+      "newContent": true,
+      "weeklyProgress": true
+    }
+  },
+
+  "reporting": {
+    "defaultTimeRange": "7d",
+    "availableRanges": ["1d", "7d", "30d", "90d"],
+    "autoReports": {
+      "enabled": true,
+      "frequency": "weekly",
+      "recipients": ["instructor", "admin"]
+    },
+    "exportFormats": ["json", "csv", "pdf"]
+  },
+
+  "maintenance": {
+    "autoCleanup": {
+      "schedule": "0 2 * * 0",
+      "tasks": ["temp_files", "old_analytics", "failed_uploads"]
+    },
+    "healthChecks": {
+      "schedule": "0 */6 * * *",
+      "checks": ["storage_access", "video_integrity", "database_connections"]
+    }
+  },
+
+  "development": {
+    "debug": {
+      "logLevel": "info",
+      "trackingLogs": true,
+      "performanceLogs": false
+    },
+    "testing": {
+      "mockAnalytics": true,
+      "simulateNetworkDelay": false,
+      "useLocalStorage": false
+    }
+  },
+
+  "integration": {
+    "mux": {
+      "enabled": false,
+      "fallback": true,
+      "description": "Fallback a Mux para videos existentes"
+    },
+    "stripe": {
+      "enabled": true,
+      "trackPurchases": true
+    },
+    "clerk": {
+      "enabled": true,
+      "trackUserSessions": true
+    }
+  },
+
+  "limits": {
+    "maxVideosPerCourse": 200,
+    "maxVideoSizeGB": 2,
+    "maxConcurrentUploads": 5,
+    "maxAnalyticsRetentionDays": 365
+  },
+
+  "features": {
+    "adaptiveStreaming": {
+      "enabled": true,
+      "status": "production"
+    },
+    "realTimeAnalytics": {
+      "enabled": true,
+      "status": "production"
+    },
+    "autoQualitySelection": {
+      "enabled": true,
+      "status": "production"
+    },
+    "dropoffDetection": {
+      "enabled": true,
+      "status": "production"
+    },
+    "bulkMigration": {
+      "enabled": true,
+      "status": "production"
+    },
+    "storageOptimization": {
+      "enabled": true,
+      "status": "production"
+    }
+  },
+
+  "metadata": {
+    "version": "2.0.0",
+    "lastUpdated": "2025-07-13",
+    "authors": ["Pacific Labs Team"],
+    "license": "Proprietary",
+    "documentation": {
+      "setup": "SISTEMA_VIDEOS_GUIA_COMPLETA.md",
+      "api": "GCS_IMPLEMENTATION_SUMMARY.md",
+      "troubleshooting": "GOOGLE_CLOUD_SETUP.md"
+    }
+  }
+}

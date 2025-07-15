@@ -1,0 +1,26 @@
+[
+  {
+    "videoPath": "./videos/leccion-1/fundamentos-ia.mp4",
+    "courseKey": "ia-basico",
+    "lessonKey": "leccion-1", 
+    "videoKey": "video-principal"
+  },
+  {
+    "videoPath": "./videos/leccion-1/tesla-caso-estudio.mp4",
+    "courseKey": "ia-basico",
+    "lessonKey": "leccion-1",
+    "videoKey": "tesla-caso"
+  },
+  {
+    "videoPath": "./videos/leccion-1/lab-google-cloud.mp4",
+    "courseKey": "ia-basico",
+    "lessonKey": "leccion-1",
+    "videoKey": "laboratorio-intro"
+  },
+  {
+    "videoPath": "./videos/leccion-1/quiz-explicacion.mp4",
+    "courseKey": "ia-basico",
+    "lessonKey": "leccion-1",
+    "videoKey": "quiz-explicacion"
+  }
+]

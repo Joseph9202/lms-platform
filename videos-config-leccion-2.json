@@ -1,0 +1,14 @@
+[
+  {
+    "videoPath": "./videos/leccion-2/tipos-machine-learning.mp4",
+    "courseKey": "ia-basico",
+    "lessonKey": "leccion-2",
+    "videoKey": "ml-tipos"
+  },
+  {
+    "videoPath": "./videos/leccion-2/netflix-recomendaciones.mp4", 
+    "courseKey": "ia-basico",
+    "lessonKey": "leccion-2",
+    "videoKey": "netflix-caso"
+  }
+]
