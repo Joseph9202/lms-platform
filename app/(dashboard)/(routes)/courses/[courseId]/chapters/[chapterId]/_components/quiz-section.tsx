@@ -146,9 +146,24 @@ export const QuizSection = ({ chapterId, chapterTitle, userId }: QuizSectionProp
     return getScorePercentage() >= aiQuiz.passingScore;
   };
 
-  const markAsCompleted = () => {
-    setIsCompleted(true);
-    // TODO: Save completion to database
+  const markAsCompleted = async () => {
+    try {
+      const score = getScorePercentage();
+      const response = await fetch('/api/quiz/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chapterId, userId, score }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save quiz result');
+      }
+
+      setIsCompleted(true);
+    } catch (error) {
+      console.error(error);
+      toast.error('Error al guardar resultado del quiz');
+    }
   };
 
   const formatTime = (seconds: number) => {
