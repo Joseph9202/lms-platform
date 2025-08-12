@@ -25,6 +25,8 @@ export const CourseCard = ({
   progress,
   category
 }: CourseCardProps) => {
+  // Check if this is the IA Básico course (gift for new users)
+  const isIABasicoFree = title.includes('IA Básico') || title.includes('Inteligencia Artificial Básico');
   return (
     <Link href={`/courses/${id}`}>
       <div className="group course-card rounded-xl p-4 h-full transform hover:scale-105 transition-all duration-300">
@@ -35,10 +37,15 @@ export const CourseCard = ({
             alt={title}
             src={imageUrl}
           />
-          <div className="absolute top-2 right-2">
-            <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+          <div className="absolute top-2 right-2 space-y-1">
+            <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs px-2 py-1 rounded-full font-medium block">
               {category}
             </span>
+            {isIABasicoFree && (
+              <span className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs px-2 py-1 rounded-full font-medium block">
+                🎁 GRATIS
+              </span>
+            )}
           </div>
         </div>
         
@@ -82,7 +89,11 @@ export const CourseCard = ({
             ) : (
               <div className="flex items-center justify-between">
                 <p className="text-lg font-bold ai-text-gradient">
-                  {formatPrice(price)}
+                  {isIABasicoFree ? (
+                    <span className="text-green-600">🎁 GRATIS</span>
+                  ) : (
+                    formatPrice(price)
+                  )}
                 </p>
                 <div className="flex items-center gap-x-1 text-gray-400">
                   <Users className="w-3 h-3" />

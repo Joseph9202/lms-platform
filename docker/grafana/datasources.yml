@@ -1,0 +1,166 @@
+# ===========================================
+# GRAFANA DATASOURCES CONFIGURATION
+# ===========================================
+# Configuración de fuentes de datos para Grafana
+
+apiVersion: 1
+
+datasources:
+  # Prometheus como fuente principal
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus-service:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: "15s"
+      httpMethod: "POST"
+      customQueryParameters: ""
+      manageAlerts: true
+      alertmanagerUid: "alertmanager"
+    secureJsonData: {}
+    version: 1
+
+  # Loki para logs (si está disponible)
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki-service:3100
+    isDefault: false
+    editable: true
+    jsonData:
+      maxLines: 1000
+      timeout: 60
+      derivedFields:
+        - datasourceUid: "jaeger"
+          matcherRegex: "traceID=(\\w+)"
+          name: "TraceID"
+          url: "$${__value.raw}"
+    version: 1
+
+  # Jaeger para tracing (si está disponible)
+  - name: Jaeger
+    type: jaeger
+    uid: "jaeger"
+    access: proxy
+    url: http://jaeger-service:16686
+    isDefault: false
+    editable: true
+    jsonData:
+      tracesToLogs:
+        datasourceUid: "loki"
+        tags: ["job", "instance", "pod", "namespace"]
+        mappedTags: [{"key": "service.name", "value": "service"}]
+        mapTagNamesEnabled: false
+        spanStartTimeShift: "1h"
+        spanEndTimeShift: "1h"
+    version: 1
+
+  # MySQL para métricas de base de datos
+  - name: MySQL
+    type: mysql
+    access: proxy
+    url: cloudsql-proxy:3307
+    database: lms_platform_prod
+    user: ${MYSQL_USER}
+    isDefault: false
+    editable: true
+    jsonData:
+      maxOpenConns: 100
+      maxIdleConns: 100
+      maxConnLifetime: 14400
+    secureJsonData:
+      password: ${MYSQL_PASSWORD}
+    version: 1
+
+  # InfluxDB para métricas temporales (si está disponible)
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    url: http://influxdb-service:8086
+    database: lms_metrics
+    user: ${INFLUXDB_USER}
+    isDefault: false
+    editable: true
+    jsonData:
+      timeInterval: "10s"
+      httpMode: "GET"
+    secureJsonData:
+      password: ${INFLUXDB_PASSWORD}
+    version: 1
+
+  # Elasticsearch para logs y análisis
+  - name: Elasticsearch
+    type: elasticsearch
+    access: proxy
+    url: http://elasticsearch-service:9200
+    database: "lms-platform-logs-*"
+    isDefault: false
+    editable: true
+    jsonData:
+      interval: "Daily"
+      timeField: "@timestamp"
+      esVersion: "7.10.0"
+      maxConcurrentShardRequests: 5
+      logMessageField: "message"
+      logLevelField: "level"
+    version: 1
+
+  # CloudWatch (para AWS)
+  - name: CloudWatch
+    type: cloudwatch
+    access: proxy
+    isDefault: false
+    editable: true
+    jsonData:
+      authType: "keys"
+      defaultRegion: "${AWS_DEFAULT_REGION}"
+      customMetricsNamespaces: "LMS/Platform"
+    secureJsonData:
+      accessKey: "${AWS_ACCESS_KEY_ID}"
+      secretKey: "${AWS_SECRET_ACCESS_KEY}"
+    version: 1
+
+  # Google Cloud Monitoring
+  - name: Google Cloud Monitoring
+    type: stackdriver
+    access: proxy
+    isDefault: false
+    editable: true
+    jsonData:
+      authenticationType: "gce"
+      defaultProject: "${GCP_PROJECT_ID}"
+      gceDefaultProject: "${GCP_PROJECT_ID}"
+    version: 1
+
+  # Azure Monitor (para Azure)
+  - name: Azure Monitor
+    type: grafana-azure-monitor-datasource
+    access: proxy
+    isDefault: false
+    editable: true
+    jsonData:
+      cloudName: "azuremonitor"
+      subscriptionId: "${AZURE_SUBSCRIPTION_ID}"
+      tenantId: "${AZURE_TENANT_ID}"
+      clientId: "${AZURE_CLIENT_ID}"
+    secureJsonData:
+      clientSecret: "${AZURE_CLIENT_SECRET}"
+    version: 1
+
+  # TestData para desarrollo y testing
+  - name: TestData
+    type: testdata
+    access: proxy
+    isDefault: false
+    editable: true
+    jsonData: {}
+    version: 1
+
+# Configuraciones adicionales
+deleteDatasources:
+  - name: "Old Prometheus"
+    orgId: 1
+  - name: "Legacy MySQL"
+    orgId: 1

@@ -1,0 +1,246 @@
+# ===========================================
+# ALERT RULES - LMS PLATFORM
+# Reglas de alertas para monitoreo completo
+# ===========================================
+
+groups:
+  # ===========================================
+  # ALERTAS DE INFRAESTRUCTURA
+  # ===========================================
+  - name: infrastructure
+    rules:
+      - alert: InstanceDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Instancia {{ $labels.instance }} está caída"
+          description: "La instancia {{ $labels.instance }} del job {{ $labels.job }} ha estado caída por más de 5 minutos."
+          runbook_url: "https://wiki.company.com/runbooks/instance-down"
+
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "Alto uso de CPU en {{ $labels.instance }}"
+          description: "CPU usage está en {{ $value }}% en {{ $labels.instance }} por más de 10 minutos."
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "Alto uso de memoria en {{ $labels.instance }}"
+          description: "Memoria usage está en {{ $value }}% en {{ $labels.instance }}."
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 < 15
+        for: 5m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "Poco espacio en disco en {{ $labels.instance }}"
+          description: "Espacio disponible es {{ $value }}% en {{ $labels.instance }}:{{ $labels.mountpoint }}."
+
+  # ===========================================
+  # ALERTAS DE APLICACIÓN
+  # ===========================================
+  - name: application
+    rules:
+      - alert: HighResponseTime
+        expr: avg(rate(http_request_duration_seconds_sum[5m])) / avg(rate(http_request_duration_seconds_count[5m])) > 2
+        for: 15m
+        labels:
+          severity: warning
+          category: application
+        annotations:
+          summary: "Alto tiempo de respuesta en LMS Platform"
+          description: "Tiempo promedio de respuesta es {{ $value }}s por más de 15 minutos."
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) * 100 > 5
+        for: 10m
+        labels:
+          severity: critical
+          category: application
+        annotations:
+          summary: "Alta tasa de errores 5xx"
+          description: "Tasa de errores 5xx es {{ $value }}% por más de 10 minutos."
+
+      - alert: DatabaseConnectionFailure
+        expr: mysql_up == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "Falla de conexión a base de datos"
+          description: "No se puede conectar a la base de datos MySQL."
+
+      - alert: HighDatabaseConnections
+        expr: mysql_global_status_threads_connected / mysql_global_variables_max_connections * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "Alto número de conexiones a base de datos"
+          description: "{{ $value }}% de conexiones MySQL están en uso."
+
+  # ===========================================
+  # ALERTAS DE NEGOCIO
+  # ===========================================
+  - name: business
+    rules:
+      - alert: LowUserRegistrations
+        expr: increase(lms_user_registrations_total[1h]) < 5
+        for: 2h
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Bajas registraciones de usuarios"
+          description: "Solo {{ $value }} registraciones en la última hora. Promedio esperado: 10+."
+
+      - alert: HighVideoUploadFailures
+        expr: rate(lms_video_upload_failures_total[10m]) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Altas fallas en uploads de video"
+          description: "{{ $value }} uploads de video fallando por minuto."
+
+      - alert: CourseCompletionRateDrop
+        expr: rate(lms_course_completions_total[24h]) < rate(lms_course_completions_total[24h] offset 7d) * 0.8
+        for: 6h
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Caída en tasa de completación de cursos"
+          description: "Tasa de completación es 20% menor que la semana pasada."
+
+      - alert: PaymentProcessingIssues
+        expr: rate(lms_payment_failures_total[30m]) / rate(lms_payment_attempts_total[30m]) > 0.05
+        for: 30m
+        labels:
+          severity: critical
+          category: business
+        annotations:
+          summary: "Problemas en procesamiento de pagos"
+          description: "{{ $value }}% de pagos están fallando."
+
+  # ===========================================
+  # ALERTAS DE KUBERNETES
+  # ===========================================
+  - name: kubernetes
+    rules:
+      - alert: PodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total[15m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          category: kubernetes
+        annotations:
+          summary: "Pod {{ $labels.pod }} está en crash loop"
+          description: "Pod {{ $labels.pod }} en namespace {{ $labels.namespace }} está reiniciando continuamente."
+
+      - alert: PodNotReady
+        expr: kube_pod_status_ready{condition="false"} == 1
+        for: 10m
+        labels:
+          severity: warning
+          category: kubernetes
+        annotations:
+          summary: "Pod {{ $labels.pod }} no está ready"
+          description: "Pod {{ $labels.pod }} en namespace {{ $labels.namespace }} no está ready por más de 10 minutos."
+
+      - alert: DeploymentReplicasMismatch
+        expr: kube_deployment_spec_replicas != kube_deployment_status_available_replicas
+        for: 15m
+        labels:
+          severity: warning
+          category: kubernetes
+        annotations:
+          summary: "Deployment {{ $labels.deployment }} tiene réplicas desiguales"
+          description: "Deployment {{ $labels.deployment }} tiene {{ $labels.spec_replicas }} réplicas especificadas pero solo {{ $labels.available_replicas }} disponibles."
+
+      - alert: NodeNotReady
+        expr: kube_node_status_condition{condition="Ready",status="true"} == 0
+        for: 10m
+        labels:
+          severity: critical
+          category: kubernetes
+        annotations:
+          summary: "Node {{ $labels.node }} no está ready"
+          description: "Node {{ $labels.node }} ha estado no ready por más de 10 minutos."
+
+  # ===========================================
+  # ALERTAS DE SEGURIDAD
+  # ===========================================
+  - name: security
+    rules:
+      - alert: SuspiciousLoginAttempts
+        expr: increase(lms_failed_login_attempts_total[10m]) > 50
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Intentos de login sospechosos"
+          description: "{{ $value }} intentos de login fallidos en los últimos 10 minutos."
+
+      - alert: UnauthorizedAPIAccess
+        expr: rate(http_requests_total{status="401"}[10m]) > 1
+        for: 10m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Acceso no autorizado a API"
+          description: "{{ $value }} requests por minuto con status 401."
+
+      - alert: HighTrafficFromSingleIP
+        expr: rate(nginx_http_requests_total[5m]) by (remote_addr) > 100
+        for: 10m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Alto tráfico desde IP única"
+          description: "IP {{ $labels.remote_addr }} está generando {{ $value }} requests por minuto."
+
+  # ===========================================
+  # ALERTAS DE SSL/TLS
+  # ===========================================
+  - name: ssl
+    rules:
+      - alert: SSLCertificateExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 30
+        for: 1h
+        labels:
+          severity: warning
+          category: ssl
+        annotations:
+          summary: "Certificado SSL expira pronto"
+          description: "Certificado SSL para {{ $labels.instance }} expira en {{ $value | humanizeDuration }}."
+
+      - alert: SSLCertificateExpired
+        expr: probe_ssl_earliest_cert_expiry - time() <= 0
+        for: 5m
+        labels:
+          severity: critical
+          category: ssl
+        annotations:
+          summary: "Certificado SSL expirado"
+          description: "Certificado SSL para {{ $labels.instance }} ha expirado."

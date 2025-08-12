@@ -11,12 +11,16 @@ interface CourseEnrollButtonProps {
   price: number;
   courseId: string;
   purchased: boolean;
+  isLoading?: boolean;
+  isFreeGift?: boolean;
 }
 
 export const CourseEnrollButton = ({
   price,
   courseId,
-  purchased
+  purchased,
+  isLoading: externalLoading = false,
+  isFreeGift = false
 }: CourseEnrollButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -24,8 +28,12 @@ export const CourseEnrollButton = ({
     try {
       setIsLoading(true);
 
-      if (purchased) {
-        toast.success("¡Ya tienes acceso a este curso!");
+      if (purchased || isFreeGift) {
+        if (isFreeGift) {
+          toast.success("¡Disfruta tu curso regalo! 🎁");
+        } else {
+          toast.success("¡Ya tienes acceso a este curso!");
+        }
         return;
       }
 
@@ -42,11 +50,15 @@ export const CourseEnrollButton = ({
   return (
     <Button
       onClick={onClick}
-      disabled={isLoading}
+      disabled={isLoading || externalLoading}
       size="sm"
-      className="w-full md:w-auto"
+      className={`w-full md:w-auto ${isFreeGift ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700' : ''}`}
     >
-      {purchased ? "Ya comprado" : `Comprar por ${formatPrice(price)}`}
+      {externalLoading ? "Verificando compra..." : 
+       isFreeGift ? "🎁 ¡Curso Gratis - Empezar Ahora!" :
+       purchased ? "Ya comprado" : 
+       isLoading ? "Procesando..." : 
+       `Comprar por ${formatPrice(price)}`}
     </Button>
   )
 }

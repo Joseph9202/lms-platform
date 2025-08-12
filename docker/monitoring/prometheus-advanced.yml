@@ -1,0 +1,169 @@
+# ===========================================
+# PROMETHEUS CONFIGURATION - LMS PLATFORM
+# Configuración completa de monitoreo
+# ===========================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'lms-platform'
+    environment: 'production'
+
+# ===========================================
+# ALERT MANAGER
+# ===========================================
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# ===========================================
+# RULES
+# ===========================================
+rule_files:
+  - "alert_rules.yml"
+  - "recording_rules.yml"
+
+# ===========================================
+# SCRAPE CONFIGURATIONS
+# ===========================================
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # LMS Application metrics
+  - job_name: 'lms-platform'
+    static_configs:
+      - targets: ['lms-app:3000']
+    scrape_interval: 15s
+    metrics_path: /api/metrics
+    honor_labels: true
+    params:
+      format: ['prometheus']
+
+  # Nginx metrics (si nginx-prometheus-exporter está habilitado)
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:9113']
+    scrape_interval: 30s
+
+  # Node Exporter (métricas del sistema)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+
+  # MySQL Exporter
+  - job_name: 'mysql'
+    static_configs:
+      - targets: ['mysql-exporter:9104']
+    scrape_interval: 30s
+
+  # Redis Exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+
+  # Kubernetes API Server (si está disponible)
+  - job_name: 'kubernetes-apiservers'
+    kubernetes_sd_configs:
+      - role: endpoints
+        namespaces:
+          names:
+            - default
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: default;kubernetes;https
+
+  # Kubernetes Nodes
+  - job_name: 'kubernetes-nodes'
+    kubernetes_sd_configs:
+      - role: node
+    scheme: https
+    tls_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics
+
+  # Kubernetes Pods
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - lms-platform
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+
+  # Custom business metrics
+  - job_name: 'lms-business-metrics'
+    static_configs:
+      - targets: ['lms-app:3000']
+    scrape_interval: 60s
+    metrics_path: /api/metrics/business
+    params:
+      module: ['business']
+
+# ===========================================
+# STORAGE
+# ===========================================
+storage:
+  tsdb:
+    path: /prometheus/data
+    retention.time: 15d
+    retention.size: 10GB
+    wal-compression: true
+
+# ===========================================
+# REMOTE WRITE (opcional para Google Cloud Monitoring)
+# ===========================================
+# remote_write:
+#   - url: "https://monitoring.googleapis.com/v1/projects/YOUR_PROJECT_ID/location/global/prometheus/api/v1/write"
+#     queue_config:
+#       capacity: 2500
+#       max_samples_per_send: 1000
+#       batch_send_deadline: 5s
+#       min_shards: 1
+#       max_shards: 200
+#     metadata_config:
+#       send: true
+#       send_interval: 30s

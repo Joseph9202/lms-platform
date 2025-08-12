@@ -1,0 +1,295 @@
+# ===========================================
+# PROMETHEUS ALERT RULES
+# ===========================================
+# Reglas de alertas para LMS Platform
+
+groups:
+  # ===========================================
+  # ALERTAS DE APLICACIÓN
+  # ===========================================
+  - name: lms-platform-app
+    rules:
+      - alert: LMSPlatformDown
+        expr: up{job="lms-platform"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "LMS Platform está down"
+          description: "La aplicación LMS Platform no está respondiendo en {{ $labels.instance }}"
+
+      - alert: LMSPlatformHighResponseTime
+        expr: histogram_quantile(0.95, http_request_duration_seconds_bucket{job="lms-platform"}) > 2
+        for: 5m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "Alto tiempo de respuesta en LMS Platform"
+          description: "El 95% de las requests toman más de 2 segundos en {{ $labels.instance }}"
+
+      - alert: LMSPlatformHighErrorRate
+        expr: rate(http_requests_total{job="lms-platform",status=~"5.."}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+          component: application
+        annotations:
+          summary: "Alta tasa de errores en LMS Platform"
+          description: "Más del 10% de requests están fallando en {{ $labels.instance }}"
+
+      - alert: LMSPlatformHighMemoryUsage
+        expr: (process_resident_memory_bytes{job="lms-platform"} / 1024 / 1024) > 800
+        for: 5m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "Alto uso de memoria en LMS Platform"
+          description: "El uso de memoria es {{ $value }}MB en {{ $labels.instance }}"
+
+      - alert: LMSPlatformHighCPUUsage
+        expr: rate(process_cpu_seconds_total{job="lms-platform"}[5m]) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "Alto uso de CPU en LMS Platform"
+          description: "El uso de CPU es {{ $value }}% en {{ $labels.instance }}"
+
+  # ===========================================
+  # ALERTAS DE KUBERNETES
+  # ===========================================
+  - name: lms-platform-k8s
+    rules:
+      - alert: LMSPlatformPodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total{namespace="lms-platform"}[15m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          component: kubernetes
+        annotations:
+          summary: "Pod en crash loop en LMS Platform"
+          description: "El pod {{ $labels.pod }} está reiniciando continuamente"
+
+      - alert: LMSPlatformPodPending
+        expr: kube_pod_status_phase{namespace="lms-platform",phase="Pending"} == 1
+        for: 5m
+        labels:
+          severity: warning
+          component: kubernetes
+        annotations:
+          summary: "Pod pending en LMS Platform"
+          description: "El pod {{ $labels.pod }} está en estado pending por más de 5 minutos"
+
+      - alert: LMSPlatformDeploymentReplicasMismatch
+        expr: kube_deployment_spec_replicas{namespace="lms-platform"} != kube_deployment_status_available_replicas{namespace="lms-platform"}
+        for: 5m
+        labels:
+          severity: warning
+          component: kubernetes
+        annotations:
+          summary: "Mismatch de réplicas en deployment"
+          description: "El deployment {{ $labels.deployment }} tiene {{ $labels.spec_replicas }} réplicas esperadas pero {{ $labels.available_replicas }} disponibles"
+
+      - alert: LMSPlatformHPAScalingEvent
+        expr: increase(kube_hpa_status_current_replicas{namespace="lms-platform"}[5m]) > 2
+        for: 1m
+        labels:
+          severity: info
+          component: kubernetes
+        annotations:
+          summary: "HPA scaling event en LMS Platform"
+          description: "El HPA {{ $labels.hpa }} está escalando a {{ $value }} réplicas"
+
+  # ===========================================
+  # ALERTAS DE INFRAESTRUCTURA
+  # ===========================================
+  - name: lms-platform-infra
+    rules:
+      - alert: LMSPlatformNodeHighCPU
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "Alto uso de CPU en nodo"
+          description: "El nodo {{ $labels.instance }} tiene {{ $value }}% de uso de CPU"
+
+      - alert: LMSPlatformNodeHighMemory
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "Alto uso de memoria en nodo"
+          description: "El nodo {{ $labels.instance }} tiene {{ $value }}% de uso de memoria"
+
+      - alert: LMSPlatformNodeDiskSpaceLow
+        expr: (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"}) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+          component: infrastructure
+        annotations:
+          summary: "Poco espacio en disco"
+          description: "El filesystem {{ $labels.mountpoint }} en {{ $labels.instance }} tiene menos del 10% de espacio libre"
+
+  # ===========================================
+  # ALERTAS DE BASE DE DATOS
+  # ===========================================
+  - name: lms-platform-database
+    rules:
+      - alert: LMSPlatformMySQLDown
+        expr: mysql_up{job="mysql"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "MySQL está down"
+          description: "La base de datos MySQL no está respondiendo en {{ $labels.instance }}"
+
+      - alert: LMSPlatformMySQLHighConnections
+        expr: mysql_global_status_threads_connected / mysql_global_variables_max_connections * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Alto número de conexiones MySQL"
+          description: "MySQL tiene {{ $value }}% de conexiones activas en {{ $labels.instance }}"
+
+      - alert: LMSPlatformMySQLSlowQueries
+        expr: rate(mysql_global_status_slow_queries[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Queries lentas en MySQL"
+          description: "MySQL tiene {{ $value }} queries lentas por segundo en {{ $labels.instance }}"
+
+  # ===========================================
+  # ALERTAS DE REDIS
+  # ===========================================
+  - name: lms-platform-redis
+    rules:
+      - alert: LMSPlatformRedisDown
+        expr: redis_up{job="redis"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Redis está down"
+          description: "El servidor Redis no está respondiendo en {{ $labels.instance }}"
+
+      - alert: LMSPlatformRedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Alto uso de memoria en Redis"
+          description: "Redis está usando {{ $value }}% de memoria en {{ $labels.instance }}"
+
+  # ===========================================
+  # ALERTAS DE NGINX
+  # ===========================================
+  - name: lms-platform-nginx
+    rules:
+      - alert: LMSPlatformNginxDown
+        expr: nginx_up{job="nginx"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: proxy
+        annotations:
+          summary: "Nginx está down"
+          description: "El servidor Nginx no está respondiendo en {{ $labels.instance }}"
+
+      - alert: LMSPlatformNginxHighErrorRate
+        expr: rate(nginx_http_requests_total{status=~"5.."}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          component: proxy
+        annotations:
+          summary: "Alta tasa de errores en Nginx"
+          description: "Nginx tiene {{ $value }} errores 5xx por segundo en {{ $labels.instance }}"
+
+  # ===========================================
+  # ALERTAS DE NEGOCIO
+  # ===========================================
+  - name: lms-platform-business
+    rules:
+      - alert: LMSPlatformLowUserRegistration
+        expr: rate(lms_user_registrations_total[1h]) < 0.1
+        for: 2h
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "Baja tasa de registro de usuarios"
+          description: "Solo {{ $value }} usuarios se han registrado en la última hora"
+
+      - alert: LMSPlatformHighVideoUploadFailures
+        expr: rate(lms_video_upload_failures_total[5m]) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "Alta tasa de fallos en subida de videos"
+          description: "{{ $value }} videos por minuto están fallando al subir"
+
+      - alert: LMSPlatformCertificateExpiry
+        expr: ssl_certificate_expiry_days < 30
+        for: 1h
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "Certificado SSL expirando pronto"
+          description: "El certificado SSL para {{ $labels.instance }} expira en {{ $value }} días"
+
+  # ===========================================
+  # ALERTAS DE SEGURIDAD
+  # ===========================================
+  - name: lms-platform-security
+    rules:
+      - alert: LMSPlatformSuspiciousActivity
+        expr: rate(lms_failed_login_attempts_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "Actividad sospechosa detectada"
+          description: "{{ $value }} intentos de login fallidos por minuto desde {{ $labels.instance }}"
+
+      - alert: LMSPlatformUnauthorizedAccess
+        expr: rate(lms_unauthorized_access_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "Acceso no autorizado detectado"
+          description: "{{ $value }} intentos de acceso no autorizado por minuto desde {{ $labels.instance }}"
+
+# ===========================================
+# CONFIGURACIÓN GLOBAL DE ALERTAS
+# ===========================================
+global:
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'alerts@ai-academy.com'
+  smtp_auth_username: 'alerts@ai-academy.com'
+  smtp_auth_password: 'your-app-password'
+  smtp_require_tls: true

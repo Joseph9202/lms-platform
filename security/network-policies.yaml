@@ -1,0 +1,260 @@
+# ===========================================
+# KUBERNETES NETWORK POLICIES
+# ===========================================
+# Políticas de red para seguridad del LMS Platform
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: lms-platform-network-policy
+  namespace: lms-platform
+  labels:
+    app: lms-platform
+    component: security
+spec:
+  podSelector:
+    matchLabels:
+      app: lms-platform
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  # Reglas de entrada (Ingress)
+  ingress:
+  # Permitir tráfico desde nginx ingress controller
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 3000
+  
+  # Permitir tráfico desde monitoring (Prometheus)
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: prometheus
+    ports:
+    - protocol: TCP
+      port: 3000
+  
+  # Permitir tráfico entre pods del mismo namespace
+  - from:
+    - podSelector:
+        matchLabels:
+          app: lms-platform
+    ports:
+    - protocol: TCP
+      port: 3000
+  
+  # Reglas de salida (Egress)
+  egress:
+  # Permitir DNS
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  
+  # Permitir HTTPS externo (APIs de terceros)
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+  
+  # Permitir HTTP externo (si es necesario)
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 80
+  
+  # Permitir conexión a Cloud SQL (puerto 3307 para proxy)
+  - to:
+    - podSelector:
+        matchLabels:
+          app: cloudsql-proxy
+    ports:
+    - protocol: TCP
+      port: 3307
+  
+  # Permitir conexión a Redis
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+
+---
+# ===========================================
+# NETWORK POLICY PARA CLOUD SQL PROXY
+# ===========================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cloudsql-proxy-network-policy
+  namespace: lms-platform
+  labels:
+    app: cloudsql-proxy
+    component: security
+spec:
+  podSelector:
+    matchLabels:
+      app: cloudsql-proxy
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  ingress:
+  # Solo permitir tráfico desde lms-platform
+  - from:
+    - podSelector:
+        matchLabels:
+          app: lms-platform
+    ports:
+    - protocol: TCP
+      port: 3307
+  
+  egress:
+  # Permitir DNS
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  
+  # Permitir conexión a Cloud SQL (HTTPS)
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+
+---
+# ===========================================
+# NETWORK POLICY PARA REDIS
+# ===========================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: redis-network-policy
+  namespace: lms-platform
+  labels:
+    app: redis
+    component: security
+spec:
+  podSelector:
+    matchLabels:
+      app: redis
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  ingress:
+  # Solo permitir tráfico desde lms-platform
+  - from:
+    - podSelector:
+        matchLabels:
+          app: lms-platform
+    ports:
+    - protocol: TCP
+      port: 6379
+  
+  egress:
+  # Permitir DNS
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+
+---
+# ===========================================
+# NETWORK POLICY PARA MONITORING
+# ===========================================
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: monitoring-network-policy
+  namespace: lms-platform
+  labels:
+    app: monitoring
+    component: security
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  ingress:
+  # Permitir acceso desde Grafana
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: grafana
+    ports:
+    - protocol: TCP
+      port: 9090
+  
+  # Permitir acceso desde nginx ingress
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 9090
+  
+  egress:
+  # Permitir DNS
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  
+  # Permitir scraping de métricas de la aplicación
+  - to:
+    - podSelector:
+        matchLabels:
+          app: lms-platform
+    ports:
+    - protocol: TCP
+      port: 3000
+
+---
+# ===========================================
+# DEFAULT DENY ALL POLICY
+# ===========================================
+# Política por defecto que niega todo el tráfico
+# Debe aplicarse después de las políticas específicas
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: lms-platform
+  labels:
+    component: security
+    policy: default-deny
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  # No hay reglas definidas, por lo que se niega todo por defecto
+  # Las políticas específicas anteriores tienen precedencia

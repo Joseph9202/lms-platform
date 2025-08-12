@@ -1,0 +1,86 @@
+{
+  "name": "LMS Platform Dev Container",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": "..",
+    "target": "builder"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-docker",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "ms-vscode.vscode-typescript-next",
+        "formulahendry.auto-rename-tag",
+        "christian-kohler.path-intellisense",
+        "ms-vscode.vscode-yaml",
+        "GitHub.copilot",
+        "GitHub.copilot-chat"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": true
+        }
+      }
+    }
+  },
+  "runArgs": [
+    "--network=lms-network"
+  ],
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/app,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/node_modules,target=/app/node_modules,type=volume"
+  ],
+  "forwardPorts": [
+    3000,
+    3306,
+    6379,
+    9090
+  ],
+  "portsAttributes": {
+    "3000": {
+      "label": "LMS Platform App",
+      "onAutoForward": "notify"
+    },
+    "3306": {
+      "label": "MySQL Database"
+    },
+    "6379": {
+      "label": "Redis Cache"
+    },
+    "9090": {
+      "label": "Prometheus Monitoring"
+    }
+  },
+  "postCreateCommand": "npm install && npx prisma generate",
+  "postStartCommand": "npm run dev",
+  "remoteEnv": {
+    "NODE_ENV": "development",
+    "NEXT_TELEMETRY_DISABLED": "1"
+  },
+  "containerEnv": {
+    "DATABASE_URL": "mysql://lms_user:lms_password@mysql-dev:3306/lms_platform_dev",
+    "REDIS_URL": "redis://redis-dev:6379"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "18"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest"
+    }
+  },
+  "workspaceFolder": "/app",
+  "shutdownAction": "stopContainer"
+}

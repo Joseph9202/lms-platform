@@ -1,0 +1,135 @@
+# ===========================================
+# DOCKERIGNORE - LMS PLATFORM
+# ===========================================
+# Archivos y carpetas a excluir del contexto Docker
+
+# Dependencias
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Archivos de desarrollo
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+*.log
+logs
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Archivos de IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema operativo
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentación y archivos de desarrollo
+README*.md
+CHANGELOG.md
+LICENSE
+*.md
+
+# Archivos de configuración específicos del entorno local
+.env
+google-cloud-credentials.json
+
+# Archivos temporales
+temp-processing/
+*.tmp
+*.temp
+
+# Videos (demasiado grandes para container)
+videos/
+uploads/
+
+# Archivos de backup
+*.bak
+*.backup
+
+# Archivos de prueba
+test/
+tests/
+__tests__/
+*.test.js
+*.spec.js
+
+# Coverage reports
+coverage/
+.nyc_output
+
+# Scripts de desarrollo local
+*.bat
+*.sh
+setup-*.js
+check-*.js
+apply-*.js
+
+# Documentación específica del proyecto
+ARCHIVOS_CREADOS_RESUMEN.md
+CHECKLIST_IMPLEMENTACION.md
+CURSO_IA_BASICO.md
+DEPLOYMENT.md
+GCS_IMPLEMENTATION_SUMMARY.md
+GOOGLE_CLOUD_SETUP.md
+IMPLEMENTACION_*.md
+LECCION_*.md
+SCRIPTS-RESUMEN.md
+SISTEMA_VIDEOS_GUIA_COMPLETA.md
+MIGRATION-*.md
+CLOUD-SQL-*.md
+AUTO-SCALE-*.md
+FINAL-*.md
+
+# Carpetas de configuración específicas
+cloud-sql/
+scripts/
+
+# Archivos de configuración de video
+videos-config-*.json
+video-system-config.json
+
+# Archivos específicos del proyecto
+add-courses.js
+analyze-student-system.js
+cleanup-duplicate-courses.js
+create-*.js
+curso-manager.bat
+detect-existing-courses.js
+list-videos.js
+upload-*.js
+verify-categories.js
+video-admin-advanced.js

@@ -1,12 +1,14 @@
 import { auth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
-import { Clock, Users, Award, BookOpen, PlayCircle, FlaskConical, CheckCircle2, Star } from "lucide-react";
+import { Clock, Users, Award, BookOpen, PlayCircle, FlaskConical, CheckCircle2, Star, TrendingUp, Target, Zap, Shield } from "lucide-react";
+import { Suspense } from "react";
 
 import { db } from "@/lib/db";
 import { IconBadge } from "@/components/icon-badge";
-import { CourseEnrollButton } from "./_components/course-enroll-button";
 import { CourseProgress } from "@/components/course-progress";
 import { getProgress } from "@/actions/get-progress";
+import { PurchaseSuccess } from "./_components/purchase-success";
+import { CourseEnrollmentCard } from "./_components/course-enrollment-card";
 
 const CourseIdPage = async ({
   params
@@ -49,219 +51,347 @@ const CourseIdPage = async ({
     }
   });
 
+  // Check if this is the IA Básico course (free for all users)
+  const isIABasicoFree = course.title.toLowerCase().includes('ia básico') || 
+                         course.title.toLowerCase().includes('inteligencia artificial básico');
+
   const progressCount = await getProgress(userId, course.id);
-
-  // Agrupar capítulos por secciones (cada 4 capítulos = 1 sección)
-  const sections = [];
-  for (let i = 0; i < course.chapters.length; i += 4) {
-    const sectionChapters = course.chapters.slice(i, i + 4);
-    if (sectionChapters.length > 0) {
-      sections.push({
-        title: sectionChapters[0].title.includes('Sección') ? sectionChapters[0].title : `Sección ${Math.floor(i/4) + 1}`,
-        chapters: sectionChapters
-      });
-    }
-  }
-
-  const getContentType = (title: string) => {
-    if (title.includes('Video') || title.includes('🎥')) return 'video';
-    if (title.includes('Lectura') || title.includes('📖')) return 'reading';
-    if (title.includes('Lab') || title.includes('🧪')) return 'lab';
-    if (title.includes('Quiz') || title.includes('📝')) return 'quiz';
-    return 'chapter';
-  };
-
-  const getContentIcon = (type: string) => {
-    switch (type) {
-      case 'video': return <PlayCircle className="w-4 h-4 text-red-600" />;
-      case 'reading': return <BookOpen className="w-4 h-4 text-blue-600" />;
-      case 'lab': return <FlaskConical className="w-4 h-4 text-green-600" />;
-      case 'quiz': return <CheckCircle2 className="w-4 h-4 text-purple-600" />;
-      default: return <BookOpen className="w-4 h-4 text-gray-600" />;
-    }
-  };
 
   const totalHours = course.title.includes('IA Básico') ? '25-30 horas' : '2-4 horas';
   const totalStudents = '1,247';
   const rating = '4.8';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Hero Section */}
-        <div className="course-card rounded-2xl p-8 mb-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <div className="mb-4">
-                <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm px-3 py-1 rounded-full font-medium">
-                  {course.category?.name || 'Inteligencia Artificial'}
-                </span>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <Suspense fallback={null}>
+        <PurchaseSuccess courseTitle={course.title} courseId={course.id} />
+      </Suspense>
+      
+      {/* Hero Section with improved design */}
+      <div className="relative bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white overflow-hidden">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="absolute inset-0 opacity-40">
+          <div className="w-full h-full" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          }}></div>
+        </div>
+        
+        <div className="relative px-6 py-12">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+              <div className="flex-1 space-y-6">
+                <div className="flex items-center space-x-3">
+                  <span className="bg-blue-500/20 text-blue-200 px-3 py-1 rounded-full text-sm font-medium border border-blue-400/30">
+                    {course.category?.name || 'Inteligencia Artificial'}
+                  </span>
+                  {isIABasicoFree && (
+                    <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+                      GRATIS
+                    </span>
+                  )}
+                </div>
+                
+                <div>
+                  <h1 className="text-4xl lg:text-5xl font-bold mb-4 leading-tight">
+                    {course.title}
+                  </h1>
+                  <p className="text-blue-100 text-xl max-w-4xl leading-relaxed">
+                    {course.description}
+                  </p>
+                </div>
+                
+                {/* Enhanced Progress Bar */}
+                {progressCount !== null && (
+                  <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 max-w-md border border-white/20">
+                    <div className="flex items-center justify-between text-sm text-blue-100 mb-3">
+                      <span className="font-medium">Tu progreso</span>
+                      <span className="font-bold text-white">{progressCount}% completado</span>
+                    </div>
+                    <div className="relative">
+                      <div className="bg-white/20 rounded-full h-3 overflow-hidden">
+                        <div 
+                          className="bg-gradient-to-r from-green-400 to-green-500 h-full rounded-full transition-all duration-300 shadow-sm"
+                          style={{ width: `${progressCount}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               
-              <h1 className="text-3xl lg:text-4xl font-bold ai-text-gradient mb-4 leading-tight">
-                {course.title}
-              </h1>
+              {/* Enhanced Stats */}
+              <div className="grid grid-cols-3 gap-6 lg:gap-8">
+                <div className="text-center p-4 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+                  <Clock className="w-6 h-6 mx-auto mb-2 text-blue-300" />
+                  <div className="font-bold text-xl text-white">{totalHours}</div>
+                  <div className="text-blue-200 text-sm">Duración</div>
+                </div>
+                <div className="text-center p-4 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+                  <Users className="w-6 h-6 mx-auto mb-2 text-blue-300" />
+                  <div className="font-bold text-xl text-white">{totalStudents}</div>
+                  <div className="text-blue-200 text-sm">Estudiantes</div>
+                </div>
+                <div className="text-center p-4 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
+                  <Star className="w-6 h-6 mx-auto mb-2 text-yellow-400" />
+                  <div className="font-bold text-xl text-white">{rating}/5</div>
+                  <div className="text-blue-200 text-sm">Calificación</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content with improved layout */}
+      <div className="flex-1 -mt-16 relative z-10">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex flex-col xl:flex-row gap-8">
+            {/* Enhanced Sidebar - Course Modules */}
+            <div className="xl:w-96 xl:flex-shrink-0">
+              <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden xl:sticky xl:top-8">
+                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6">
+                  <h3 className="text-xl font-bold flex items-center">
+                    <BookOpen className="w-6 h-6 mr-3" />
+                    Contenido del curso
+                  </h3>
+                  <p className="text-blue-100 text-sm mt-2">
+                    {course.chapters.length} lecciones disponibles
+                  </p>
+                </div>
               
-              <p className="text-gray-700 text-lg leading-relaxed mb-6">
-                {course.description}
-              </p>
-              
-              {/* Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
-                  <Clock className="w-5 h-5 text-blue-600 mx-auto mb-2" />
-                  <div className="text-sm font-medium text-gray-800">{totalHours}</div>
-                  <div className="text-xs text-gray-600">Duración</div>
-                </div>
-                <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
-                  <Users className="w-5 h-5 text-green-600 mx-auto mb-2" />
-                  <div className="text-sm font-medium text-gray-800">{totalStudents}</div>
-                  <div className="text-xs text-gray-600">Estudiantes</div>
-                </div>
-                <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
-                  <Star className="w-5 h-5 text-yellow-600 mx-auto mb-2" />
-                  <div className="text-sm font-medium text-gray-800">{rating}/5</div>
-                  <div className="text-xs text-gray-600">Rating</div>
-                </div>
-                <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
-                  <Award className="w-5 h-5 text-purple-600 mx-auto mb-2" />
-                  <div className="text-sm font-medium text-gray-800">Certificado</div>
-                  <div className="text-xs text-gray-600">Incluido</div>
+                {isIABasicoFree && (
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200 p-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-green-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg">
+                        GRATIS
+                      </div>
+                      <span className="text-green-800 font-semibold">Acceso completo</span>
+                    </div>
+                    <p className="text-green-700 text-sm mt-2 font-medium">
+                      🎉 Este curso es completamente gratuito para todos
+                    </p>
+                  </div>
+                )}
+                
+                <div className="max-h-[500px] overflow-y-auto">
+                  {course.chapters.map((chapter, index) => {
+                    const chapterNumber = index + 1;
+                    const isSection = chapter.title.startsWith('Sección');
+                    const isCompleted = false;
+                    
+                    if (isSection) {
+                      return (
+                        <div key={chapter.id} className="bg-gray-50 border-b border-gray-200 py-4 px-6">
+                          <h4 className="font-bold text-gray-800 text-sm uppercase tracking-wide flex items-center">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                            {chapter.title}
+                          </h4>
+                        </div>
+                      );
+                    }
+                    
+                    return (
+                      <a
+                        key={chapter.id}
+                        href={`/courses/${params.courseId}/chapters/${chapter.id}`}
+                        className="block p-4 hover:bg-blue-50 transition-all duration-200 group border-b border-gray-100 last:border-b-0"
+                      >
+                        <div className="flex items-start space-x-4">
+                          <div className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center text-sm font-bold transition-all ${
+                            isCompleted 
+                              ? 'bg-green-500 border-green-500 text-white shadow-lg'
+                              : 'border-gray-300 text-gray-500 group-hover:border-blue-500 group-hover:text-blue-600 group-hover:bg-blue-50'
+                          }`}>
+                            {isCompleted ? '✓' : chapterNumber}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 line-clamp-2 mb-2">
+                              {chapter.title.replace(/🎥|📖|🧪|📝/, '').trim()}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              {chapter.title.includes('🎥') && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-700 font-medium">
+                                  <PlayCircle className="w-3 h-3 mr-1" />
+                                  Video
+                                </span>
+                              )}
+                              {chapter.title.includes('📖') && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700 font-medium">
+                                  <BookOpen className="w-3 h-3 mr-1" />
+                                  Lectura
+                                </span>
+                              )}
+                              {chapter.title.includes('🧪') && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-700 font-medium">
+                                  <FlaskConical className="w-3 h-3 mr-1" />
+                                  Lab
+                                </span>
+                              )}
+                              {chapter.title.includes('📝') && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-700 font-medium">
+                                  <Award className="w-3 h-3 mr-1" />
+                                  Quiz
+                                </span>
+                              )}
+                              {(chapter.isFree || isIABasicoFree) && (
+                                <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-sm">
+                                  Gratis
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
             </div>
             
-            {/* Enrollment Card */}
-            <div className="lg:col-span-1">
-              <div className="ai-card p-6 sticky top-8">
-                <CourseEnrollButton
-                  courseId={params.courseId}
-                  price={course.price!}
-                  purchased={!!purchase}
-                />
+            {/* Enhanced Main Content */}
+            <div className="flex-1 space-y-6">
+              {/* CTA Card - Priority placement */}
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl shadow-xl overflow-hidden">
+                <div className="p-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold mb-2">¡Comienza tu aprendizaje ahora!</h2>
+                      <p className="text-blue-100">Únete a miles de estudiantes y domina la IA</p>
+                    </div>
+                    <Zap className="w-12 h-12 text-yellow-400" />
+                  </div>
+                  
+                  <CourseEnrollmentCard
+                    courseId={params.courseId}
+                    courseTitle={course.title}
+                    price={course.price || 0}
+                    purchased={!!purchase}
+                    isIABasicoFree={isIABasicoFree}
+                    progressCount={progressCount}
+                    firstChapterId={
+                      course.chapters.find(ch => 
+                        ch.title.includes('🎥') || 
+                        ch.title.includes('📖') || 
+                        ch.title.includes('🧪') || 
+                        ch.title.includes('📝') ||
+                        (!ch.title.startsWith('Sección'))
+                      )?.id || 
+                      (course.chapters.length > 0 ? course.chapters[0].id : undefined)
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* Course Overview */}
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                <div className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-gray-200 p-8">
+                  <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center">
+                    <Target className="w-8 h-8 mr-3 text-blue-600" />
+                    Acerca de este curso
+                  </h2>
+                  <p className="text-gray-700 text-xl leading-relaxed">
+                    {course.description}
+                  </p>
+                </div>
                 
-                {purchase && progressCount !== null && (
-                  <div className="mt-6">
-                    <CourseProgress
-                      variant={progressCount === 100 ? "success" : "default"}
-                      value={progressCount}
-                    />
+                <div className="p-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                    <TrendingUp className="w-6 h-6 mr-3 text-green-600" />
+                    Lo que dominarás:
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-4 mb-8">
+                    <div className="flex items-start space-x-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+                      <CheckCircle2 className="w-6 h-6 text-green-600 mt-1 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-1">Fundamentos de IA</h4>
+                        <p className="text-gray-600 text-sm">Conceptos básicos y arquitecturas modernas</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-200">
+                      <CheckCircle2 className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-1">Machine Learning</h4>
+                        <p className="text-gray-600 text-sm">Algoritmos supervisados y no supervisados</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200">
+                      <CheckCircle2 className="w-6 h-6 text-purple-600 mt-1 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-1">Python Avanzado</h4>
+                        <p className="text-gray-600 text-sm">Librerías especializadas para IA</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-4 p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl border border-orange-200">
+                      <CheckCircle2 className="w-6 h-6 text-orange-600 mt-1 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-1">Google Cloud AI</h4>
+                        <p className="text-gray-600 text-sm">Proyectos en producción real</p>
+                      </div>
+                    </div>
                   </div>
-                )}
+                </div>
+              </div>
                 
-                <div className="mt-6 space-y-3 text-sm text-gray-600">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    <span>Acceso de por vida</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    <span>Certificado de finalización</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    <span>Soporte de instructor</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    <span>Laboratorios Google Cloud</span>
+              {/* Enhanced Course Features */}
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200 p-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2 flex items-center">
+                    <Shield className="w-7 h-7 mr-3 text-indigo-600" />
+                    Garantías y beneficios
+                  </h3>
+                  <p className="text-gray-600">Todo lo que obtienes con este curso premium</p>
+                </div>
+                
+                <div className="p-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="group p-6 bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl border border-green-200 hover:shadow-lg transition-all">
+                      <div className="flex items-center space-x-4 mb-3">
+                        <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                          <CheckCircle2 className="w-6 h-6 text-white" />
+                        </div>
+                        <h4 className="font-bold text-gray-800 text-lg">Acceso de por vida</h4>
+                      </div>
+                      <p className="text-gray-600">Nunca pierdas acceso a tu inversión educativa</p>
+                    </div>
+                    
+                    <div className="group p-6 bg-gradient-to-br from-blue-50 to-cyan-100 rounded-xl border border-blue-200 hover:shadow-lg transition-all">
+                      <div className="flex items-center space-x-4 mb-3">
+                        <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                          <Award className="w-6 h-6 text-white" />
+                        </div>
+                        <h4 className="font-bold text-gray-800 text-lg">Certificación oficial</h4>
+                      </div>
+                      <p className="text-gray-600">Demuestra tus habilidades con nuestro certificado</p>
+                    </div>
+                    
+                    <div className="group p-6 bg-gradient-to-br from-purple-50 to-pink-100 rounded-xl border border-purple-200 hover:shadow-lg transition-all">
+                      <div className="flex items-center space-x-4 mb-3">
+                        <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                          <Users className="w-6 h-6 text-white" />
+                        </div>
+                        <h4 className="font-bold text-gray-800 text-lg">Soporte experto</h4>
+                      </div>
+                      <p className="text-gray-600">Mentoria directa de nuestros instructores</p>
+                    </div>
+                    
+                    <div className="group p-6 bg-gradient-to-br from-orange-50 to-red-100 rounded-xl border border-orange-200 hover:shadow-lg transition-all">
+                      <div className="flex items-center space-x-4 mb-3">
+                        <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                          <FlaskConical className="w-6 h-6 text-white" />
+                        </div>
+                        <h4 className="font-bold text-gray-800 text-lg">Labs en Google Cloud</h4>
+                      </div>
+                      <p className="text-gray-600">Práctica con herramientas profesionales</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        
-        {/* Course Content */}
-        <div className="course-card rounded-2xl p-8">
-          <div className="flex items-center gap-x-3 mb-6">
-            <IconBadge icon={BookOpen} variant="default" />
-            <h2 className="text-2xl font-bold text-gray-800">
-              Contenido del Curso
-            </h2>
-          </div>
-          
-          {course.title.includes('IA Básico') ? (
-            /* Mostrar por secciones para el curso de IA Básico */
-            <div className="space-y-6">
-              {sections.map((section, sectionIndex) => (
-                <div key={sectionIndex} className="border border-gray-200 rounded-xl p-6 bg-white">
-                  <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                    <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-3">
-                      {sectionIndex + 1}
-                    </span>
-                    {section.title}
-                  </h3>
-                  
-                  <div className="grid gap-3">
-                    {section.chapters.map((chapter, chapterIndex) => {
-                      const contentType = getContentType(chapter.title);
-                      const isMainSection = chapterIndex === 0 && chapter.title.includes('Sección');
-                      
-                      if (isMainSection) return null; // Skip main section header
-                      
-                      return (
-                        <div key={chapter.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors">
-                          <div className="flex items-center space-x-3">
-                            {getContentIcon(contentType)}
-                            <div>
-                              <div className="flex items-center space-x-2">
-                                <span className="text-sm font-medium text-gray-800">
-                                  {chapter.title.replace(/🎥|📖|🧪|📝/g, '').trim()}
-                                </span>
-                                {chapter.isFree && (
-                                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
-                                    Gratis
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-xs text-gray-600 mt-1">{chapter.description}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center space-x-1 text-gray-500">
-                            <Clock className="w-3 h-3" />
-                            <span className="text-xs">
-                              {contentType === 'video' ? '25-30 min' :
-                               contentType === 'reading' ? '15-20 min' :
-                               contentType === 'lab' ? '45-60 min' :
-                               contentType === 'quiz' ? '15 min' : '10 min'}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            /* Mostrar lista simple para otros cursos */
-            <div className="space-y-3">
-              {course.chapters.map((chapter) => (
-                <div key={chapter.id} className="p-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-x-3">
-                    <div className="flex items-center gap-x-2">
-                      <IconBadge size="sm" icon={BookOpen} variant="default" />
-                      <span className="font-medium text-gray-800">
-                        {chapter.title}
-                      </span>
-                      {chapter.isFree && (
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
-                          Gratis
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-2 ml-10">{chapter.description}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );
-}
+};
 
 export default CourseIdPage;

@@ -1,0 +1,107 @@
+# ===========================================
+# MYSQL TESTING CONFIGURATION
+# Configuración optimizada para testing rápido
+# ===========================================
+
+[mysqld]
+# ===========================================
+# CONFIGURACIÓN BÁSICA DE TESTING
+# ===========================================
+
+# Server ID
+server-id = 999
+port = 3306
+bind-address = 0.0.0.0
+
+# Character set
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+default-time-zone = '+00:00'
+
+# ===========================================
+# OPTIMIZACIONES PARA TESTING RÁPIDO
+# ===========================================
+
+# Disable InnoDB features for speed
+innodb_flush_log_at_trx_commit = 0
+innodb_buffer_pool_size = 64M
+innodb_log_file_size = 16M
+innodb_log_buffer_size = 4M
+innodb_doublewrite = 0
+innodb_checksums = 0
+innodb_support_xa = 0
+
+# Disable slow query log
+slow_query_log = 0
+
+# Disable general log
+general_log = 0
+
+# Disable binary logging
+skip-log-bin
+
+# Memory optimizations for testing
+sort_buffer_size = 256K
+read_buffer_size = 256K
+read_rnd_buffer_size = 256K
+join_buffer_size = 256K
+tmp_table_size = 16M
+max_heap_table_size = 16M
+
+# Connection settings
+max_connections = 50
+max_connect_errors = 100
+connect_timeout = 5
+wait_timeout = 300
+interactive_timeout = 300
+
+# Thread settings
+thread_cache_size = 8
+thread_stack = 128K
+
+# ===========================================
+# CONFIGURACIÓN DE TABLAS
+# ===========================================
+
+# MyISAM settings
+key_buffer_size = 32M
+myisam_sort_buffer_size = 16M
+
+# Table settings
+table_open_cache = 100
+table_definition_cache = 100
+
+# ===========================================
+# CONFIGURACIÓN DE SEGURIDAD RELAJADA
+# ===========================================
+
+# Relaxed SQL modes for testing
+sql_mode = NO_ENGINE_SUBSTITUTION
+
+# Allow local file loading for test data
+local_infile = 1
+secure_file_priv = ""
+
+# ===========================================
+# CONFIGURACIÓN DE MEMORIA MÍNIMA
+# ===========================================
+
+# Query cache disabled for testing consistency
+query_cache_type = 0
+query_cache_size = 0
+
+# Minimal settings
+performance_schema = OFF
+
+[mysql]
+default-character-set = utf8mb4
+
+[client]
+default-character-set = utf8mb4
+port = 3306
+
+[mysqldump]
+quick
+quote-names
+max_allowed_packet = 16M
+default-character-set = utf8mb4

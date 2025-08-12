@@ -1,0 +1,131 @@
+# ===========================================
+# DOCKERFILE PARA DESARROLLO - LMS PLATFORM
+# Imagen optimizada para desarrollo con hot reload
+# ===========================================
+
+FROM node:18-alpine AS base
+
+# Instalar dependencias del sistema necesarias para desarrollo
+RUN apk add --no-cache \
+    bash \
+    git \
+    curl \
+    vim \
+    htop \
+    procps \
+    dumb-init \
+    && rm -rf /var/cache/apk/*
+
+# Configurar zona horaria
+RUN apk add --no-cache tzdata
+ENV TZ=America/Bogota
+
+# Crear usuario de desarrollo
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001 -G nodejs
+RUN mkdir -p /home/nextjs/.cache && chown nextjs:nodejs /home/nextjs/.cache
+
+WORKDIR /app
+
+# Configurar npm para desarrollo
+RUN npm config set fund false
+RUN npm config set audit-level moderate
+
+# ===========================================
+# ETAPA: DEPENDENCIAS DE DESARROLLO
+# ===========================================
+
+FROM base AS deps-dev
+
+# Copiar archivos de configuración de dependencias
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma/
+
+# Instalar todas las dependencias (incluyendo dev dependencies)
+RUN npm ci --include=dev --prefer-offline
+RUN npx prisma generate
+
+# ===========================================
+# ETAPA: DESARROLLO CON HOT RELOAD
+# ===========================================
+
+FROM base AS development
+
+# Copiar dependencias desde la etapa anterior
+COPY --from=deps-dev /app/node_modules ./node_modules
+COPY --from=deps-dev /app/package.json ./package.json
+
+# Variables de entorno para desarrollo
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV CHOKIDAR_USEPOLLING=true
+ENV WATCHPACK_POLLING=true
+
+# Configuración de hot reload
+ENV FAST_REFRESH=true
+ENV WDS_SOCKET_PORT=0
+
+# Configurar permisos para el usuario de desarrollo
+USER nextjs
+
+# Exponer puertos para desarrollo
+EXPOSE 3000
+EXPOSE 9229
+
+# Crear directorios necesarios
+RUN mkdir -p .next/cache
+RUN mkdir -p /tmp/next-cache
+
+# Health check para desarrollo
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Script de inicio para desarrollo
+COPY --chown=nextjs:nodejs docker/scripts/dev-entrypoint.sh /usr/local/bin/dev-entrypoint.sh
+RUN chmod +x /usr/local/bin/dev-entrypoint.sh
+
+# Comando por defecto para desarrollo
+ENTRYPOINT ["dumb-init", "--", "dev-entrypoint.sh"]
+CMD ["npm", "run", "dev"]
+
+# ===========================================
+# ETAPA: TESTING
+# ===========================================
+
+FROM development AS testing
+
+# Instalar dependencias adicionales para testing
+USER root
+RUN apk add --no-cache \
+    chromium \
+    firefox \
+    xvfb-run \
+    && rm -rf /var/cache/apk/*
+
+# Configurar variables para testing
+ENV NODE_ENV=test
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV CHROME_BIN=/usr/bin/chromium-browser
+ENV FIREFOX_BIN=/usr/bin/firefox
+
+USER nextjs
+
+# Comando para ejecutar tests
+CMD ["npm", "run", "test"]
+
+# ===========================================
+# ETAPA: DEBUGGING
+# ===========================================
+
+FROM development AS debug
+
+# Variables para debugging
+ENV NODE_OPTIONS="--inspect=0.0.0.0:9229"
+ENV DEBUG="*"
+
+# Exponer puerto de debugging
+EXPOSE 9229
+
+# Comando para debugging
+CMD ["npm", "run", "dev:debug"]

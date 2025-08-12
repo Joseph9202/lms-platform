@@ -1,0 +1,534 @@
+# ===========================================
+# CI/CD PIPELINE - LMS PLATFORM
+# GitHub Actions workflow completo
+# ===========================================
+
+name: 🚀 LMS Platform CI/CD
+
+on:
+  push:
+    branches: [ main, develop, staging ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, develop ]
+    types: [ opened, synchronize, reopened ]
+
+env:
+  # Configuración global
+  NODE_VERSION: '18'
+  REGISTRY: gcr.io
+  PROJECT_ID: ai-academy-461719
+  IMAGE_NAME: lms-platform
+  CLUSTER_NAME: lms-cluster
+  CLUSTER_ZONE: us-central1-a
+  
+  # Configuración de cache
+  CACHE_KEY_PREFIX: lms-platform-v1
+  
+  # Configuración de seguridad
+  TRIVY_SEVERITY: HIGH,CRITICAL
+  SONAR_TIMEOUT: 300
+
+# ===========================================
+# JOBS DE CI/CD
+# ===========================================
+
+jobs:
+  # ===========================================
+  # JOB: VALIDACIÓN Y TESTING
+  # ===========================================
+  
+  validate-and-test:
+    name: 🧪 Validate & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: lms_test
+          MYSQL_USER: test_user
+          MYSQL_PASSWORD: test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Para SonarQube
+      
+      - name: 🔍 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📦 Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+            .next/cache
+          key: ${{ env.CACHE_KEY_PREFIX }}-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ env.CACHE_KEY_PREFIX }}-${{ runner.os }}-
+      
+      - name: 📥 Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit
+          npm run prisma:generate
+      
+      - name: 🔍 Lint code
+        run: |
+          npm run lint
+          npm run lint:fix || true
+      
+      - name: 🔍 Type check
+        run: npm run type-check
+      
+      - name: 🧪 Run unit tests
+        run: |
+          npm run test:unit -- --coverage --watchAll=false
+        env:
+          NODE_ENV: test
+          DATABASE_URL: mysql://test_user:test_password@localhost:3306/lms_test
+          REDIS_URL: redis://localhost:6379
+      
+      - name: 🧪 Run integration tests
+        run: |
+          npm run test:integration -- --watchAll=false
+        env:
+          NODE_ENV: test
+          DATABASE_URL: mysql://test_user:test_password@localhost:3306/lms_test
+          REDIS_URL: redis://localhost:6379
+      
+      - name: 🧪 Run E2E tests
+        run: |
+          npm run build
+          npm start &
+          sleep 30
+          npm run test:e2e
+        env:
+          NODE_ENV: test
+          DATABASE_URL: mysql://test_user:test_password@localhost:3306/lms_test
+      
+      - name: 📊 Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: lms-platform-coverage
+      
+      - name: 📊 SonarQube Scan
+        if: github.actor != 'dependabot[bot]'
+        uses: sonarqube-quality-gate-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        timeout-minutes: 5
+
+  # ===========================================
+  # JOB: SECURITY SCAN
+  # ===========================================
+  
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: validate-and-test
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🔍 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📦 Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: 🔒 Run npm audit
+        run: |
+          npm audit --audit-level=high --production
+        continue-on-error: true
+      
+      - name: 🔒 Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+        continue-on-error: true
+      
+      - name: 🔒 CodeQL Analysis
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript, typescript
+      
+      - name: 🔒 Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  # ===========================================
+  # JOB: BUILD DOCKER IMAGE
+  # ===========================================
+  
+  build-image:
+    name: 🐳 Build Image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [validate-and-test, security-scan]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/tags/')
+    
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🔧 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: 🔐 Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: 🔧 Configure Docker for GCR
+        run: gcloud auth configure-docker
+      
+      - name: 🏷️ Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+      
+      - name: 🐳 Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NODE_ENV=production
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+            VERSION=${{ steps.meta.outputs.version }}
+      
+      - name: 🔒 Scan image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: ${{ env.TRIVY_SEVERITY }}
+      
+      - name: 📊 Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # ===========================================
+  # JOB: DEPLOY TO STAGING
+  # ===========================================
+  
+  deploy-staging:
+    name: 🚀 Deploy to Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build-image
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🔐 Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: 🔧 Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+      
+      - name: 🔧 Configure kubectl
+        run: |
+          gcloud container clusters get-credentials ${{ env.CLUSTER_NAME }} --zone ${{ env.CLUSTER_ZONE }}
+      
+      - name: 🚀 Deploy to staging
+        run: |
+          # Usar Helm para deployment
+          helm upgrade --install lms-platform-staging ./helm/lms-platform \
+            --namespace lms-platform-staging \
+            --create-namespace \
+            --values ./helm/lms-platform/values-staging.yaml \
+            --set image.tag=${{ github.sha }} \
+            --set environment=staging \
+            --wait \
+            --timeout=10m
+      
+      - name: ✅ Verify deployment
+        run: |
+          kubectl rollout status deployment/lms-platform-staging -n lms-platform-staging --timeout=300s
+          kubectl get pods -n lms-platform-staging
+      
+      - name: 🧪 Run smoke tests
+        run: |
+          # Esperar a que el servicio esté listo
+          sleep 30
+          
+          # Obtener URL del servicio
+          SERVICE_IP=$(kubectl get service lms-platform-staging -n lms-platform-staging -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          
+          # Tests básicos
+          curl -f http://$SERVICE_IP/api/health || exit 1
+          curl -f http://$SERVICE_IP/api/metrics || exit 1
+      
+      - name: 📢 Notify Slack - Staging Success
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: '🎉 Staging deployment successful! Version: ${{ github.sha }}'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      
+      - name: 📢 Notify Slack - Staging Failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: '❌ Staging deployment failed! Check logs for details.'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # ===========================================
+  # JOB: DEPLOY TO PRODUCTION
+  # ===========================================
+  
+  deploy-production:
+    name: 🚀 Deploy to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: build-image
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    environment: production
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🔐 Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: 🔧 Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+      
+      - name: 🔧 Configure kubectl
+        run: |
+          gcloud container clusters get-credentials ${{ env.CLUSTER_NAME }} --zone ${{ env.CLUSTER_ZONE }}
+      
+      - name: 💾 Backup current deployment
+        run: |
+          # Crear backup de la configuración actual
+          kubectl get deployment lms-platform -n lms-platform -o yaml > backup-deployment-$(date +%Y%m%d-%H%M%S).yaml
+          
+          # Subir backup a GCS
+          gsutil cp backup-deployment-*.yaml gs://lms-platform-backups/deployments/
+      
+      - name: 🚀 Deploy to production
+        run: |
+          # Deployment gradual usando Helm
+          helm upgrade --install lms-platform ./helm/lms-platform \
+            --namespace lms-platform \
+            --create-namespace \
+            --values ./helm/lms-platform/values-prod.yaml \
+            --set image.tag=${{ github.sha }} \
+            --set environment=production \
+            --wait \
+            --timeout=15m \
+            --atomic
+      
+      - name: ✅ Verify deployment
+        id: verify
+        run: |
+          # Verificar que el deployment sea exitoso
+          kubectl rollout status deployment/lms-platform -n lms-platform --timeout=600s
+          
+          # Verificar health checks
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=lms-platform -n lms-platform --timeout=300s
+          
+          # Obtener información del deployment
+          echo "deployment_status=success" >> $GITHUB_OUTPUT
+          echo "pods_running=$(kubectl get pods -n lms-platform -l app.kubernetes.io/name=lms-platform --no-headers | grep Running | wc -l)" >> $GITHUB_OUTPUT
+      
+      - name: 🧪 Run production smoke tests
+        run: |
+          # Esperar un poco más para asegurar estabilidad
+          sleep 60
+          
+          # Tests de producción más exhaustivos
+          SERVICE_URL="https://lms.yourdomain.com"
+          
+          # Health check
+          curl -f $SERVICE_URL/api/health || exit 1
+          
+          # Metrics check
+          curl -f $SERVICE_URL/api/metrics || exit 1
+          
+          # Basic functionality test
+          curl -f $SERVICE_URL || exit 1
+      
+      - name: 📊 Update deployment metrics
+        run: |
+          # Reportar métricas de deployment a monitoring
+          curl -X POST ${{ secrets.METRICS_ENDPOINT }} \
+            -H "Authorization: Bearer ${{ secrets.METRICS_TOKEN }}" \
+            -d '{
+              "metric": "deployment_success",
+              "value": 1,
+              "labels": {
+                "environment": "production",
+                "version": "${{ github.sha }}",
+                "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"
+              }
+            }'
+      
+      - name: 🏷️ Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            ## 🚀 Production Release
+            
+            **Docker Image:** `${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }}:${{ github.sha }}`
+            
+            **Deployed to:** Production
+            **Deployment Time:** ${{ github.event.head_commit.timestamp }}
+            **Commit:** ${{ github.sha }}
+            
+            ### 📊 Deployment Info
+            - Pods Running: ${{ steps.verify.outputs.pods_running }}
+            - Status: ${{ steps.verify.outputs.deployment_status }}
+            
+            ### 🔗 Links
+            - [Application](https://lms.yourdomain.com)
+            - [Monitoring](https://monitoring.yourdomain.com)
+            - [Logs](https://logs.yourdomain.com)
+          draft: false
+          prerelease: false
+      
+      - name: 📢 Notify Slack - Production Success
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: |
+            🎉 **Production deployment successful!**
+            
+            📋 **Details:**
+            • Version: `${{ github.sha }}`
+            • Pods Running: ${{ steps.verify.outputs.pods_running }}
+            • URL: https://lms.yourdomain.com
+            
+            🚀 **Ready for users!**
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      
+      - name: 🔄 Rollback on failure
+        if: failure()
+        run: |
+          echo "🔄 Deployment failed, initiating rollback..."
+          helm rollback lms-platform -n lms-platform
+          kubectl rollout status deployment/lms-platform -n lms-platform --timeout=300s
+      
+      - name: 📢 Notify Slack - Production Failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: |
+            ❌ **Production deployment failed!**
+            
+            🔄 **Automatic rollback initiated**
+            📋 **Check logs for details**
+            🆘 **Manual intervention may be required**
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # ===========================================
+  # JOB: CLEANUP
+  # ===========================================
+  
+  cleanup:
+    name: 🧹 Cleanup
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    
+    steps:
+      - name: 🔐 Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: 🧹 Clean up old images
+        run: |
+          # Mantener solo las últimas 10 imágenes
+          gcloud container images list-tags ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }} \
+            --sort-by=~TIMESTAMP \
+            --format="value(digest)" \
+            --limit=999999 | tail -n +11 | \
+          while read digest; do
+            gcloud container images delete "${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.IMAGE_NAME }}@$digest" --quiet
+          done
+      
+      - name: 📊 Report cleanup metrics
+        run: |
+          echo "🧹 Cleanup completed at $(date)"
+          echo "📊 Images cleaned up from registry"

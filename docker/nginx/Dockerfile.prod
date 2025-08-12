@@ -1,0 +1,70 @@
+# ===========================================
+# NGINX DOCKERFILE - PRODUCTION
+# ===========================================
+# Imagen optimizada de Nginx para LMS Platform
+
+FROM nginx:1.25-alpine
+
+# Información de la imagen
+LABEL maintainer="LMS Platform Team"
+LABEL version="1.0"
+LABEL description="Optimized Nginx proxy for LMS Platform"
+
+# Variables de entorno
+ENV NGINX_VERSION=1.25
+ENV NGINX_USER=nginx
+ENV NGINX_GROUP=nginx
+
+# Instalar dependencias adicionales
+RUN apk add --no-cache \
+    curl \
+    wget \
+    openssl \
+    certbot \
+    logrotate \
+    && rm -rf /var/cache/apk/*
+
+# Crear directorios necesarios
+RUN mkdir -p /etc/nginx/ssl \
+    && mkdir -p /var/log/nginx \
+    && mkdir -p /var/cache/nginx \
+    && mkdir -p /usr/share/nginx/html
+
+# Copiar archivos de configuración
+COPY docker/nginx/prod.conf /etc/nginx/nginx.conf
+COPY docker/nginx/mime.types /etc/nginx/mime.types
+COPY docker/nginx/ssl/ /etc/nginx/ssl/
+COPY docker/nginx/error-pages/ /usr/share/nginx/html/
+
+# Configurar permisos
+RUN chown -R ${NGINX_USER}:${NGINX_GROUP} /var/cache/nginx \
+    && chown -R ${NGINX_USER}:${NGINX_GROUP} /var/log/nginx \
+    && chown -R ${NGINX_USER}:${NGINX_GROUP} /etc/nginx/ssl \
+    && chmod -R 755 /etc/nginx/ssl
+
+# Generar certificados SSL auto-firmados para desarrollo
+RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout /etc/nginx/ssl/lms.ai-academy.com.key \
+    -out /etc/nginx/ssl/lms.ai-academy.com.crt \
+    -subj "/C=US/ST=State/L=City/O=Organization/CN=lms.ai-academy.com"
+
+# Configurar log rotation
+COPY docker/nginx/logrotate.conf /etc/logrotate.d/nginx
+
+# Script de inicio personalizado
+COPY docker/nginx/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/nginx_status || exit 1
+
+# Exponer puertos
+EXPOSE 80 443 8080
+
+# Cambiar al usuario nginx
+USER ${NGINX_USER}
+
+# Comando de inicio
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,173 @@
+# ===========================================
+# SERVICE - LMS PLATFORM
+# ===========================================
+# Service para exponer la aplicación LMS
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: lms-platform-service
+  namespace: lms-platform
+  labels:
+    app: lms-platform
+    component: backend
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}'
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: lms-platform
+    component: backend
+  sessionAffinity: None
+---
+# ===========================================
+# SERVICE - REDIS CACHE
+# ===========================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  namespace: lms-platform
+  labels:
+    app: redis
+    component: cache
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6379
+    targetPort: 6379
+    protocol: TCP
+    name: redis
+  selector:
+    app: redis
+    component: cache
+---
+# ===========================================
+# DEPLOYMENT - REDIS CACHE
+# ===========================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+  namespace: lms-platform
+  labels:
+    app: redis
+    component: cache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+      component: cache
+  template:
+    metadata:
+      labels:
+        app: redis
+        component: cache
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: lms-secrets
+              key: REDIS_PASSWORD
+        command:
+        - redis-server
+        - --requirepass
+        - $(REDIS_PASSWORD)
+        - --appendonly
+        - "yes"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - --pass
+            - $(REDIS_PASSWORD)
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - --pass
+            - $(REDIS_PASSWORD)
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: redis-storage
+          mountPath: /data
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 999
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: redis-storage
+        persistentVolumeClaim:
+          claimName: redis-pvc
+      restartPolicy: Always
+---
+# ===========================================
+# PERSISTENT VOLUME CLAIM - REDIS
+# ===========================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: lms-platform
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard-rwo
+---
+# ===========================================
+# SERVICE ACCOUNT
+# ===========================================
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lms-platform-sa
+  namespace: lms-platform
+  annotations:
+    iam.gke.io/gcp-service-account: lms-platform-gsa@ai-academy-461719.iam.gserviceaccount.com
+---
+# ===========================================
+# CLUSTER ROLE BINDING
+# ===========================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: lms-platform-binding
+subjects:
+- kind: ServiceAccount
+  name: lms-platform-sa
+  namespace: lms-platform
+roleRef:
+  kind: ClusterRole
+  name: view
+  apiGroup: rbac.authorization.k8s.io

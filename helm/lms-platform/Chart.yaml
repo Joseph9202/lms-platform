@@ -1,0 +1,20 @@
+apiVersion: v2
+name: lms-platform
+description: LMS Platform - Learning Management System Helm Chart
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - lms
+  - education
+  - nextjs
+  - mysql
+  - redis
+home: https://github.com/your-org/lms-platform
+sources:
+  - https://github.com/your-org/lms-platform
+maintainers:
+  - name: LMS Platform Team
+    email: team@lmsplatform.com
+annotations:
+  category: Education

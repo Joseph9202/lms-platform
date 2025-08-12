@@ -1,0 +1,43 @@
+# ===========================================
+# GRAFANA DASHBOARDS CONFIGURATION
+# Configuración automática de dashboards
+# ===========================================
+
+apiVersion: 1
+
+providers:
+  # LMS Platform Dashboards
+  - name: 'lms-platform'
+    type: file
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: true
+
+  # System Dashboards
+  - name: 'system'
+    type: file
+    updateIntervalSeconds: 60
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/system
+      foldersFromFilesStructure: false
+
+  # Business Dashboards
+  - name: 'business'
+    type: file
+    updateIntervalSeconds: 60
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/business
+      foldersFromFilesStructure: false
+
+  # Security Dashboards
+  - name: 'security'
+    type: file
+    updateIntervalSeconds: 120
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/security
+      foldersFromFilesStructure: false

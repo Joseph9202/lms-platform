@@ -24,6 +24,9 @@ export const ChapterVideoManager = ({
   chapterTitle
 }: ChapterVideoManagerProps) => {
   const [videoUrl, setVideoUrl] = useState(initialVideoUrl || "");
+  
+  // Debug logs
+  console.log('ChapterVideoManager:', { chapterId, videoUrl: initialVideoUrl, isOwner });
   const { isCompleted, progress, updateProgress, markAsCompleted } = useVideoProgress({
     chapterId,
     userId
@@ -93,6 +96,9 @@ export const ChapterVideoManager = ({
         </h3>
         <p className="text-gray-500">
           El video para este capítulo aún no ha sido subido.
+        </p>
+        <p className="text-xs text-gray-400 mt-2">
+          Debug: videoUrl = "{videoUrl}", initialVideoUrl = "{initialVideoUrl}"
         </p>
       </div>
     );

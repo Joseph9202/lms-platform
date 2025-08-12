@@ -1,0 +1,91 @@
+# ===========================================
+# GRAFANA DASHBOARDS PROVISIONING
+# ===========================================
+# Configuración para auto-provisioning de dashboards
+
+apiVersion: 1
+
+providers:
+  # Dashboards principales de LMS Platform
+  - name: 'lms-platform-dashboards'
+    orgId: 1
+    folder: 'LMS Platform'
+    folderUid: 'lms-platform-folder'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/lms-platform
+
+  # Dashboards de infraestructura
+  - name: 'infrastructure-dashboards'
+    orgId: 1
+    folder: 'Infrastructure'
+    folderUid: 'infrastructure-folder'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/infrastructure
+
+  # Dashboards de aplicación
+  - name: 'application-dashboards'
+    orgId: 1
+    folder: 'Application'
+    folderUid: 'application-folder'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/application
+
+  # Dashboards de seguridad
+  - name: 'security-dashboards'
+    orgId: 1
+    folder: 'Security'
+    folderUid: 'security-folder'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/security
+
+  # Dashboards de negocio
+  - name: 'business-dashboards'
+    orgId: 1
+    folder: 'Business Metrics'
+    folderUid: 'business-folder'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/business
+
+  # Dashboards importados desde Grafana.com
+  - name: 'community-dashboards'
+    orgId: 1
+    folder: 'Community'
+    folderUid: 'community-folder'
+    type: file
+    disableDeletion: true
+    updateIntervalSeconds: 60
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/provisioning/dashboards/community
+
+  # Dashboards de alertas
+  - name: 'alerts-dashboards'
+    orgId: 1
+    folder: 'Alerts & SLIs'
+    folderUid: 'alerts-folder'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/alerts

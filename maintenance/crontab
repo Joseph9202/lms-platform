@@ -1,0 +1,231 @@
+# ===========================================
+# CRON JOBS CONFIGURATION
+# ===========================================
+# Configuración de tareas programadas para LMS Platform
+
+# ┌───────────── minute (0 - 59)
+# │ ┌───────────── hour (0 - 23)
+# │ │ ┌───────────── day of the month (1 - 31)
+# │ │ │ ┌───────────── month (1 - 12)
+# │ │ │ │ ┌───────────── day of the week (0 - 6) (Sunday to Saturday)
+# │ │ │ │ │
+# * * * * * command to execute
+
+# ===========================================
+# MANTENIMIENTO DIARIO
+# ===========================================
+
+# Health check cada 5 minutos
+*/5 * * * * /bin/bash /app/maintenance/automated-maintenance.sh -h >> /var/log/lms/maintenance.log 2>&1
+
+# Limpieza de logs cada hora
+0 * * * * /bin/bash /app/maintenance/automated-maintenance.sh -c >> /var/log/lms/maintenance.log 2>&1
+
+# Verificación de métricas cada 15 minutos
+*/15 * * * * /bin/bash /app/maintenance/automated-maintenance.sh -m >> /var/log/lms/maintenance.log 2>&1
+
+# Optimización de performance cada 4 horas
+0 */4 * * * /bin/bash /app/maintenance/automated-maintenance.sh -o >> /var/log/lms/maintenance.log 2>&1
+
+# ===========================================
+# MANTENIMIENTO DIARIO (NOCHE)
+# ===========================================
+
+# Backup completo diario a las 2:00 AM
+0 2 * * * /bin/bash /app/docker/scripts/backup.sh >> /var/log/lms/backup.log 2>&1
+
+# Mantenimiento completo diario a las 3:00 AM
+0 3 * * * /bin/bash /app/maintenance/automated-maintenance.sh -a >> /var/log/lms/maintenance.log 2>&1
+
+# Verificación de actualizaciones a las 4:00 AM
+0 4 * * * /bin/bash /app/maintenance/automated-maintenance.sh -u >> /var/log/lms/maintenance.log 2>&1
+
+# Limpieza profunda de disco a las 5:00 AM
+0 5 * * * /bin/bash /app/maintenance/automated-maintenance.sh -c >> /var/log/lms/maintenance.log 2>&1
+
+# ===========================================
+# MANTENIMIENTO SEMANAL
+# ===========================================
+
+# Backup semanal completo los domingos a las 1:00 AM
+0 1 * * 0 /bin/bash /app/docker/scripts/backup.sh && /bin/bash /app/maintenance/weekly-maintenance.sh >> /var/log/lms/weekly.log 2>&1
+
+# Verificación de seguridad los lunes a las 6:00 AM
+0 6 * * 1 /bin/bash /app/security/security-audit.sh >> /var/log/lms/security.log 2>&1
+
+# Análisis de performance los miércoles a las 7:00 AM
+0 7 * * 3 /bin/bash /app/tools/performance-analysis.sh >> /var/log/lms/performance.log 2>&1
+
+# Verificación de certificados SSL los viernes a las 8:00 AM
+0 8 * * 5 /bin/bash /app/maintenance/automated-maintenance.sh --ssl >> /var/log/lms/ssl.log 2>&1
+
+# ===========================================
+# MANTENIMIENTO MENSUAL
+# ===========================================
+
+# Limpieza profunda el primer día del mes a las 12:00 AM
+0 0 1 * * /bin/bash /app/maintenance/monthly-cleanup.sh >> /var/log/lms/monthly.log 2>&1
+
+# Reporte mensual de métricas el día 1 a las 9:00 AM
+0 9 1 * * /bin/bash /app/maintenance/monthly-report.sh >> /var/log/lms/reports.log 2>&1
+
+# Actualización de dependencias el día 15 a las 10:00 AM
+0 10 15 * * /bin/bash /app/maintenance/update-dependencies.sh >> /var/log/lms/updates.log 2>&1
+
+# ===========================================
+# MONITOREO Y ALERTAS
+# ===========================================
+
+# Verificación de estado cada minuto (solo en producción)
+# * * * * * [ "$NODE_ENV" = "production" ] && /bin/bash /app/monitoring/health-monitor.sh >> /var/log/lms/monitoring.log 2>&1
+
+# Recolección de métricas para Prometheus cada 30 segundos
+# */30 * * * * /bin/bash /app/monitoring/collect-metrics.sh >> /var/log/lms/metrics.log 2>&1
+
+# Verificación de alertas cada 2 minutos
+*/2 * * * * /bin/bash /app/monitoring/check-alerts.sh >> /var/log/lms/alerts.log 2>&1
+
+# ===========================================
+# DESARROLLO Y TESTING
+# ===========================================
+
+# Tests automatizados en staging cada 6 horas
+# 0 */6 * * * [ "$NODE_ENV" = "staging" ] && /bin/bash /app/tests/automated-tests.sh >> /var/log/lms/tests.log 2>&1
+
+# Sincronización de datos de desarrollo cada 12 horas
+# 0 */12 * * * [ "$NODE_ENV" = "development" ] && /bin/bash /app/scripts/sync-dev-data.sh >> /var/log/lms/sync.log 2>&1
+
+# ===========================================
+# BACKUP Y RECUPERACIÓN
+# ===========================================
+
+# Verificación de integridad de backups cada 6 horas
+0 */6 * * * /bin/bash /app/docker/scripts/verify-backups.sh >> /var/log/lms/backup-verify.log 2>&1
+
+# Rotación de backups diaria a las 6:00 AM
+0 6 * * * /bin/bash /app/maintenance/rotate-backups.sh >> /var/log/lms/backup-rotation.log 2>&1
+
+# Test de restore mensual (en entorno de pruebas)
+# 0 12 1 * * [ "$NODE_ENV" = "testing" ] && /bin/bash /app/docker/scripts/test-restore.sh >> /var/log/lms/restore-test.log 2>&1
+
+# ===========================================
+# SEGURIDAD
+# ===========================================
+
+# Escaneo de vulnerabilidades diario a las 11:00 PM
+0 23 * * * /bin/bash /app/security/vulnerability-scan.sh >> /var/log/lms/security-scan.log 2>&1
+
+# Análisis de logs de seguridad cada hora
+0 * * * * /bin/bash /app/security/analyze-security-logs.sh >> /var/log/lms/security-analysis.log 2>&1
+
+# Rotación de logs de seguridad diaria a las 11:30 PM
+30 23 * * * /usr/sbin/logrotate -f /etc/logrotate.d/lms-security
+
+# ===========================================
+# LIMPIEZA Y OPTIMIZACIÓN
+# ===========================================
+
+# Limpieza de archivos temporales cada hora
+0 * * * * find /tmp -name "*lms*" -type f -mtime +1 -delete 2>/dev/null
+
+# Optimización de base de datos semanal los domingos a las 4:00 AM
+0 4 * * 0 /bin/bash /app/maintenance/optimize-database.sh >> /var/log/lms/db-optimization.log 2>&1
+
+# Limpieza de imágenes Docker no utilizadas diaria a las 1:00 AM
+0 1 * * * docker image prune -f --filter "until=24h" >> /var/log/lms/docker-cleanup.log 2>&1
+
+# Limpieza de containers detenidos diaria a las 1:30 AM
+30 1 * * * docker container prune -f --filter "until=24h" >> /var/log/lms/docker-cleanup.log 2>&1
+
+# ===========================================
+# NOTIFICACIONES
+# ===========================================
+
+# Reporte de estado diario a las 8:00 AM
+0 8 * * * /bin/bash /app/maintenance/daily-status-report.sh >> /var/log/lms/status.log 2>&1
+
+# Notificación de alertas críticas cada 5 minutos
+*/5 * * * * /bin/bash /app/monitoring/critical-alerts.sh >> /var/log/lms/critical.log 2>&1
+
+# Envío de métricas semanales los lunes a las 9:00 AM
+0 9 * * 1 /bin/bash /app/monitoring/weekly-metrics-report.sh >> /var/log/lms/weekly-metrics.log 2>&1
+
+# ===========================================
+# CONFIGURACIÓN ESPECÍFICA POR ENTORNO
+# ===========================================
+
+# DESARROLLO
+# Restart automático en desarrollo cada 4 horas (solo si hay cambios)
+# 0 */4 * * * [ "$NODE_ENV" = "development" ] && /bin/bash /app/scripts/dev-auto-restart.sh >> /var/log/lms/dev.log 2>&1
+
+# STAGING
+# Deploy automático desde develop cada 2 horas
+# 0 */2 * * * [ "$NODE_ENV" = "staging" ] && /bin/bash /app/scripts/auto-deploy-staging.sh >> /var/log/lms/staging-deploy.log 2>&1
+
+# PRODUCCIÓN
+# Verificación de certificados SSL cada 12 horas en producción
+0 */12 * * * [ "$NODE_ENV" = "production" ] && /bin/bash /app/maintenance/automated-maintenance.sh --ssl >> /var/log/lms/ssl-check.log 2>&1
+
+# ===========================================
+# VARIABLES DE ENTORNO PARA CRON
+# ===========================================
+
+# PATH para que cron encuentre los comandos
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Variables específicas de la aplicación
+NODE_ENV=production
+TZ=UTC
+LOG_LEVEL=info
+
+# Variables para notificaciones
+SLACK_WEBHOOK_URL=
+NOTIFICATION_EMAIL=admin@ai-academy.com
+
+# Variables para backups
+BACKUP_RETENTION_DAYS=30
+BACKUP_LOCATION=/backups
+
+# ===========================================
+# COMENTARIOS Y DOCUMENTACIÓN
+# ===========================================
+
+# Para habilitar logs detallados, descomenta la siguiente línea:
+# CRON_LOG_LEVEL=debug
+
+# Para deshabilitar notificaciones en desarrollo:
+# [ "$NODE_ENV" = "development" ] && export DISABLE_NOTIFICATIONS=true
+
+# Para configurar zona horaria específica:
+# TZ=America/New_York
+
+# ===========================================
+# INSTALACIÓN
+# ===========================================
+
+# Para instalar este crontab:
+# crontab /app/maintenance/crontab
+#
+# Para ver el crontab actual:
+# crontab -l
+#
+# Para editar el crontab:
+# crontab -e
+#
+# Para eliminar el crontab:
+# crontab -r
+
+# ===========================================
+# LOGS DE CRON
+# ===========================================
+
+# Los logs de cron se encuentran en:
+# /var/log/cron (CentOS/RHEL)
+# /var/log/syslog (Ubuntu/Debian)
+# /var/log/lms/ (logs de aplicación)
+
+# Para verificar que cron está ejecutándose:
+# grep CRON /var/log/syslog
+
+# Para depurar trabajos de cron:
+# tail -f /var/log/lms/maintenance.log

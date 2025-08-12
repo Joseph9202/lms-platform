@@ -3,13 +3,14 @@
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl"]
   previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
-  // Configuración estándar que escala automáticamente
+  // Configuración para Debian/Ubuntu con compatibilidad multi-plataforma
   relationMode = "foreignKeys"
 }
 

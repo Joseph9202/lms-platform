@@ -1,0 +1,937 @@
+{
+  "lgebra-lineal-y-nlp": {
+    "id": "5a0f4ac9-22b5-47c6-a7c1-73a74aa989b6",
+    "title": "Álgebra Lineal y NLP",
+    "description": "Álgebra lineal aplicada a procesamiento de lenguaje natural y word embeddings.",
+    "categoryId": "646e4d4b-e93e-496c-8da2-ffd021d2e47a",
+    "categoryName": "Matemáticas para IA",
+    "totalChapters": 5,
+    "secciones": {
+      "seccion-1": {
+        "name": "Sección 1",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "118a4157-5f6b-40cc-8d54-636b97c3a8cf",
+            "title": "Módulo 1",
+            "description": "Contenido del módulo 1 del curso Álgebra Lineal y NLP",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 1
+          },
+          "leccion-2": {
+            "chapterId": "48d2d0ce-65c3-4600-be01-b581946a5b33",
+            "title": "Módulo 2",
+            "description": "Contenido del módulo 2 del curso Álgebra Lineal y NLP",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 2
+          },
+          "leccion-3": {
+            "chapterId": "0e9fa1ec-4160-4663-bd11-f6d1c110db36",
+            "title": "Módulo 3",
+            "description": "Contenido del módulo 3 del curso Álgebra Lineal y NLP",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 3
+          },
+          "leccion-4": {
+            "chapterId": "180ca2fb-9c47-4fde-8f7d-93546ed91e3f",
+            "title": "Módulo 4",
+            "description": "Contenido del módulo 4 del curso Álgebra Lineal y NLP",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 4
+          },
+          "leccion-5": {
+            "chapterId": "20735801-4e2c-4bb4-97b3-3179be003fc1",
+            "title": "Módulo 5",
+            "description": "Contenido del módulo 5 del curso Álgebra Lineal y NLP",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 5
+          }
+        }
+      }
+    },
+    "createdAt": "2025-07-13T01:07:51.885Z",
+    "updatedAt": "2025-07-13T01:07:51.885Z"
+  },
+  "anlisis-y-visualizacin-de-dato": {
+    "id": "af247d80-045a-44f7-b1e0-69169801c89e",
+    "title": "Análisis y Visualización de Datos II",
+    "description": "Visualización avanzada con Plotly, dashboards con Streamlit y análisis geoespacial.",
+    "categoryId": "ffe42c45-6059-4c4e-aa4d-4033db2681b2",
+    "categoryName": "Ciencia de Datos",
+    "totalChapters": 5,
+    "secciones": {
+      "seccion-1": {
+        "name": "Sección 1",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "5c2bbe23-7ad3-4cc6-b94b-06ab486d39a8",
+            "title": "Módulo 1",
+            "description": "Contenido del módulo 1 del curso Análisis y Visualización de Datos II",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 1
+          },
+          "leccion-2": {
+            "chapterId": "c96575f0-da6c-4f86-9948-b66fd723f355",
+            "title": "Módulo 2",
+            "description": "Contenido del módulo 2 del curso Análisis y Visualización de Datos II",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 2
+          },
+          "leccion-3": {
+            "chapterId": "1ebf7861-c725-4dfa-a27b-874a968fba2d",
+            "title": "Módulo 3",
+            "description": "Contenido del módulo 3 del curso Análisis y Visualización de Datos II",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 3
+          },
+          "leccion-4": {
+            "chapterId": "4c60261b-9568-46bb-8625-6ae847bf0d7d",
+            "title": "Módulo 4",
+            "description": "Contenido del módulo 4 del curso Análisis y Visualización de Datos II",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 4
+          },
+          "leccion-5": {
+            "chapterId": "68248f6f-46a9-4524-90ce-1233b285c13d",
+            "title": "Módulo 5",
+            "description": "Contenido del módulo 5 del curso Análisis y Visualización de Datos II",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 5
+          }
+        }
+      }
+    },
+    "createdAt": "2025-07-13T01:07:48.008Z",
+    "updatedAt": "2025-07-13T01:07:48.008Z"
+  },
+  "clculo-avanzado-para-ia": {
+    "id": "634aad5b-41d7-4cd4-a2f4-5e94a700637e",
+    "title": "Cálculo Avanzado para IA",
+    "description": "Cálculo diferencial e integral aplicado a IA: gradientes, optimización y backpropagation.",
+    "categoryId": "646e4d4b-e93e-496c-8da2-ffd021d2e47a",
+    "categoryName": "Matemáticas para IA",
+    "totalChapters": 5,
+    "secciones": {
+      "seccion-1": {
+        "name": "Sección 1",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "902af81c-f8be-4ab2-838e-de7b94b63aa4",
+            "title": "Módulo 1",
+            "description": "Contenido del módulo 1 del curso Cálculo Avanzado para IA",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 1
+          },
+          "leccion-2": {
+            "chapterId": "5ca1045f-a7fd-4c1d-acf4-3c75b95f8c35",
+            "title": "Módulo 2",
+            "description": "Contenido del módulo 2 del curso Cálculo Avanzado para IA",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 2
+          },
+          "leccion-3": {
+            "chapterId": "f03221fb-5a83-4b32-91a0-012cd381e083",
+            "title": "Módulo 3",
+            "description": "Contenido del módulo 3 del curso Cálculo Avanzado para IA",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 3
+          },
+          "leccion-4": {
+            "chapterId": "9dce879e-ab7f-472f-a478-8981ce4b8fe1",
+            "title": "Módulo 4",
+            "description": "Contenido del módulo 4 del curso Cálculo Avanzado para IA",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 4
+          },
+          "leccion-5": {
+            "chapterId": "0dbdecfc-1945-4755-be4a-65ae85f2caf9",
+            "title": "Módulo 5",
+            "description": "Contenido del módulo 5 del curso Cálculo Avanzado para IA",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 5
+          }
+        }
+      }
+    },
+    "createdAt": "2025-07-13T01:07:54.123Z",
+    "updatedAt": "2025-07-13T01:07:54.123Z"
+  },
+  "computer-vision-y-opencv": {
+    "id": "e96f5fb6-3b64-4266-9ed2-edce9d732d58",
+    "title": "Computer Vision y OpenCV",
+    "description": "Domina la visión por computadora con OpenCV y Python. Detección de objetos, reconocimiento facial y procesamiento de imágenes.",
+    "categoryId": "6460e4b4-a90d-40b5-af25-ebd9ae72542b",
+    "categoryName": "Machine Learning",
+    "totalChapters": 2,
+    "secciones": {
+      "seccion-1": {
+        "name": "Sección 1",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "4ba3b6cc-0d1b-4592-a582-2c3e34565f21",
+            "title": "Fundamentos de Computer Vision",
+            "description": "Qué es la visión por computadora y sus aplicaciones",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 1
+          },
+          "leccion-2": {
+            "chapterId": "4f8834bf-d55e-4e2d-b76d-6979352fb677",
+            "title": "OpenCV Installation y Setup",
+            "description": "Configuración del entorno y primeras operaciones con imágenes",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 2
+          }
+        }
+      }
+    },
+    "createdAt": "2025-07-07T06:30:18.583Z",
+    "updatedAt": "2025-07-07T06:30:18.583Z"
+  },
+  "deep-learning-y-redes-neuronal": {
+    "id": "e659a1ea-3d8d-4d4e-b879-1ac0d7833bfb",
+    "title": "Deep Learning y Redes Neuronales",
+    "description": "Domina el Deep Learning con TensorFlow y Keras. Construye redes neuronales convolucionales, redes recurrentes y modelos de visión por computadora.",
+    "categoryId": "6460e4b4-a90d-40b5-af25-ebd9ae72542b",
+    "categoryName": "Machine Learning",
+    "totalChapters": 3,
+    "secciones": {
+      "seccion-1": {
+        "name": "Sección 1",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "27ca3433-d754-4f77-a9b7-1fcd6d055922",
+            "title": "Fundamentos de Deep Learning",
+            "description": "Neuronas artificiales, perceptrón y redes neuronales básicas",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 1
+          },
+          "leccion-2": {
+            "chapterId": "dea77225-de64-4f9f-988c-3d3ca3cf4711",
+            "title": "TensorFlow y Keras Setup",
+            "description": "Configuración del entorno y primeros modelos",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 2
+          },
+          "leccion-3": {
+            "chapterId": "ab759dc3-8ecb-44df-bf97-53381ec3cc22",
+            "title": "Redes Neuronales Convolucionales (CNN)",
+            "description": "Procesamiento de imágenes y reconocimiento de patrones",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 3
+          }
+        }
+      }
+    },
+    "createdAt": "2025-07-07T06:30:17.302Z",
+    "updatedAt": "2025-07-07T06:30:17.302Z"
+  },
+  "estadstica-avanzada-y-anlisis-": {
+    "id": "5f438834-b243-4dc4-9c19-9b796ada5716",
+    "title": "Estadística Avanzada y Análisis Multivariado",
+    "description": "Inferencia estadística, PCA, análisis factorial y estadística bayesiana para ML.",
+    "categoryId": "cbbc1a8b-45e6-475f-aac6-615b3234e1d0",
+    "categoryName": "Estadística y Análisis",
+    "totalChapters": 5,
+    "secciones": {
+      "seccion-1": {
+        "name": "Sección 1",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "06650a6a-865b-44b7-b743-5637c0dd5d84",
+            "title": "Módulo 1",
+            "description": "Contenido del módulo 1 del curso Estadística Avanzada y Análisis Multivariado",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 1
+          },
+          "leccion-2": {
+            "chapterId": "ff73cf03-b8cc-4661-8f04-d30aed427c09",
+            "title": "Módulo 2",
+            "description": "Contenido del módulo 2 del curso Estadística Avanzada y Análisis Multivariado",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 2
+          },
+          "leccion-3": {
+            "chapterId": "c8b768a3-d512-4230-81b3-edf2f85693ea",
+            "title": "Módulo 3",
+            "description": "Contenido del módulo 3 del curso Estadística Avanzada y Análisis Multivariado",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 3
+          },
+          "leccion-4": {
+            "chapterId": "0a817dab-6383-4cf0-893f-627764a80335",
+            "title": "Módulo 4",
+            "description": "Contenido del módulo 4 del curso Estadística Avanzada y Análisis Multivariado",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 4
+          },
+          "leccion-5": {
+            "chapterId": "dc65d1da-5736-4b9b-8f85-380dbf49e3ee",
+            "title": "Módulo 5",
+            "description": "Contenido del módulo 5 del curso Estadística Avanzada y Análisis Multivariado",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 5
+          }
+        }
+      }
+    },
+    "createdAt": "2025-07-13T01:07:56.093Z",
+    "updatedAt": "2025-07-13T01:07:56.093Z"
+  },
+  "ia-bsico-certificacin-profesio": {
+    "id": "c1b53af5-f0a7-46f0-8702-8d3ecc6304e8",
+    "title": "IA Básico - Certificación Profesional",
+    "description": "Curso completo de Inteligencia Artificial desde cero. Primera lección incluye: video explicativo, lectura interactiva multimedia, laboratorio práctico con Google Cloud Vertex AI, y evaluación. Certificación profesional incluida.",
+    "categoryId": null,
+    "categoryName": "Sin categoría",
+    "totalChapters": 40,
+    "secciones": {
+      "seccion-1": {
+        "name": "Sección 1",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "82f86fc7-a627-415c-816e-398124157557",
+            "title": "Sección 1: Fundamentos de la Inteligencia Artificial",
+            "description": "Introducción a los conceptos básicos de IA, historia, tipos de IA y aplicaciones en el mundo real",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 1
+          },
+          "leccion-2": {
+            "chapterId": "46d61442-277e-4cbd-90b6-cb361afdfa6c",
+            "title": "🎥 Video: Fundamentos de IA: Historia, Definiciones y Conceptos Clave",
+            "description": "Video explicativo de la  Fundamentos de la Inteligencia Artificial. Duración aproximada: 25-30 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 2
+          },
+          "leccion-3": {
+            "chapterId": "7e3049d5-2bcd-4edf-96a5-ecc3c579ac62",
+            "title": "📖 Lectura: Estudio de Caso: Cómo Tesla utiliza IA para conducción autónoma",
+            "description": "Análisis detallado de caso real de la industria. Tiempo de lectura: 15-20 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 3
+          },
+          "leccion-4": {
+            "chapterId": "631e238a-e728-4f92-956f-cd50ce087836",
+            "title": "🧪 Lab: Laboratorio Google Cloud: Configuración inicial de Vertex AI y primer modelo",
+            "description": "Laboratorio práctico usando Google Cloud Vertex AI. Duración: 45-60 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 4
+          },
+          "leccion-5": {
+            "chapterId": "c8cf6ce2-2a5b-4e6c-904b-4da0e3d95302",
+            "title": "📝 Quiz: Quiz Teórico-Práctico: Conceptos fundamentales y identificación de casos de uso",
+            "description": "Evaluación teórico-práctica con 10 preguntas de opción múltiple. Tiempo: 15 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 5
+          }
+        }
+      },
+      "seccion-2": {
+        "name": "Sección 2",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "6cd269d6-bf90-4f17-ae8f-1310ed039433",
+            "title": "Sección 2: Tipos de Aprendizaje Automático",
+            "description": "Aprendizaje supervisado, no supervisado y por refuerzo. Diferencias y aplicaciones prácticas",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 6
+          },
+          "leccion-2": {
+            "chapterId": "9fa2df8f-3abc-44df-8ef3-07e48258a553",
+            "title": "🎥 Video: Machine Learning: Supervisado vs No Supervisado vs Refuerzo",
+            "description": "Video explicativo de la  Tipos de Aprendizaje Automático. Duración aproximada: 25-30 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 7
+          },
+          "leccion-3": {
+            "chapterId": "db0355c5-8101-48ad-9f67-e3b3123ea887",
+            "title": "📖 Lectura: Estudio de Caso: Netflix y su sistema de recomendaciones con ML",
+            "description": "Análisis detallado de caso real de la industria. Tiempo de lectura: 15-20 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 8
+          },
+          "leccion-4": {
+            "chapterId": "15a630b6-1d17-43d0-b00e-4dca46683456",
+            "title": "🧪 Lab: Laboratorio Google Cloud: Implementando clasificación supervisada en Vertex AI",
+            "description": "Laboratorio práctico usando Google Cloud Vertex AI. Duración: 45-60 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 9
+          },
+          "leccion-5": {
+            "chapterId": "d077005e-c4aa-4499-a56e-d27a07dc021a",
+            "title": "📝 Quiz: Quiz Práctico: Identificación de tipos de ML y selección de algoritmos",
+            "description": "Evaluación teórico-práctica con 10 preguntas de opción múltiple. Tiempo: 15 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 10
+          }
+        }
+      },
+      "seccion-3": {
+        "name": "Sección 3",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "037025e0-d1c6-4baa-b5d8-6460c75d7a3e",
+            "title": "Sección 3: Algoritmos de Machine Learning",
+            "description": "Regresión lineal, árboles de decisión, clustering y redes neuronales básicas",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 11
+          },
+          "leccion-2": {
+            "chapterId": "f803f9af-f42f-41bf-be92-2969921a6f27",
+            "title": "🎥 Video: Algoritmos Esenciales: De la Regresión a las Redes Neuronales",
+            "description": "Video explicativo de la  Algoritmos de Machine Learning. Duración aproximada: 25-30 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 12
+          },
+          "leccion-3": {
+            "chapterId": "ad9d3c79-170a-451c-9722-4cfe95fa68e0",
+            "title": "📖 Lectura: Estudio de Caso: Amazon y su optimización de precios con algoritmos ML",
+            "description": "Análisis detallado de caso real de la industria. Tiempo de lectura: 15-20 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 13
+          },
+          "leccion-4": {
+            "chapterId": "f135f767-9f18-4972-ba77-f04a9e46b984",
+            "title": "🧪 Lab: Laboratorio Google Cloud: Entrenando modelos de regresión y clasificación",
+            "description": "Laboratorio práctico usando Google Cloud Vertex AI. Duración: 45-60 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 14
+          },
+          "leccion-5": {
+            "chapterId": "1caaa412-2c90-4bab-b485-806357886865",
+            "title": "📝 Quiz: Quiz Algorítmico: Selección y aplicación de algoritmos según el problema",
+            "description": "Evaluación teórico-práctica con 10 preguntas de opción múltiple. Tiempo: 15 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 15
+          }
+        }
+      },
+      "seccion-4": {
+        "name": "Sección 4",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "82c4eacd-21b4-4428-8a0f-a38c4ec3825a",
+            "title": "Sección 4: Procesamiento de Datos para IA",
+            "description": "Limpieza, preparación y transformación de datos. Feature engineering y normalización",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 16
+          },
+          "leccion-2": {
+            "chapterId": "65898d38-4d94-4f0c-a823-dd9875e0166b",
+            "title": "🎥 Video: Data Science para IA: Preparación y Feature Engineering",
+            "description": "Video explicativo de la  Procesamiento de Datos para IA. Duración aproximada: 25-30 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 17
+          },
+          "leccion-3": {
+            "chapterId": "bc41309d-0bc5-4f2e-8074-2c53d121b67b",
+            "title": "📖 Lectura: Estudio de Caso: Spotify y el procesamiento de datos musicales para IA",
+            "description": "Análisis detallado de caso real de la industria. Tiempo de lectura: 15-20 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 18
+          },
+          "leccion-4": {
+            "chapterId": "fb6fd302-4c28-4537-afe7-f79c8b061eb7",
+            "title": "🧪 Lab: Laboratorio Google Cloud: Pipeline de datos con BigQuery y Vertex AI",
+            "description": "Laboratorio práctico usando Google Cloud Vertex AI. Duración: 45-60 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 19
+          },
+          "leccion-5": {
+            "chapterId": "2d83d23c-7944-4b37-aff5-566e5a7085ec",
+            "title": "📝 Quiz: Quiz de Datos: Técnicas de preprocesamiento y calidad de datos",
+            "description": "Evaluación teórico-práctica con 10 preguntas de opción múltiple. Tiempo: 15 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 20
+          }
+        }
+      },
+      "seccion-5": {
+        "name": "Sección 5",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "2a738790-a270-4f0e-8748-a79137f06504",
+            "title": "Sección 5: Redes Neuronales y Deep Learning",
+            "description": "Introducción a las redes neuronales, backpropagation y arquitecturas básicas",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 21
+          },
+          "leccion-2": {
+            "chapterId": "e32907c1-dd18-4858-8dd4-bcd34f868ec0",
+            "title": "🎥 Video: Deep Learning Explicado: Neuronas, Capas y Entrenamiento",
+            "description": "Video explicativo de la  Redes Neuronales y Deep Learning. Duración aproximada: 25-30 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 22
+          },
+          "leccion-3": {
+            "chapterId": "681284e6-9cb8-4744-bb81-4b768202a481",
+            "title": "📖 Lectura: Estudio de Caso: Google Translate y las redes neuronales para traducción",
+            "description": "Análisis detallado de caso real de la industria. Tiempo de lectura: 15-20 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 23
+          },
+          "leccion-4": {
+            "chapterId": "501907ec-d22d-4958-a384-c0fc4d56354e",
+            "title": "🧪 Lab: Laboratorio Google Cloud: Construyendo tu primera red neuronal en Vertex AI",
+            "description": "Laboratorio práctico usando Google Cloud Vertex AI. Duración: 45-60 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 24
+          },
+          "leccion-5": {
+            "chapterId": "b1ebc64d-f71a-4581-a953-424594462c60",
+            "title": "📝 Quiz: Quiz de Redes Neuronales: Arquitecturas y parámetros de entrenamiento",
+            "description": "Evaluación teórico-práctica con 10 preguntas de opción múltiple. Tiempo: 15 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 25
+          }
+        }
+      },
+      "seccion-6": {
+        "name": "Sección 6",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "e30571bf-dce3-4fb7-8642-c50b690aa680",
+            "title": "Sección 6: IA en Visión por Computadora",
+            "description": "Reconocimiento de imágenes, CNN y aplicaciones de computer vision",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 26
+          },
+          "leccion-2": {
+            "chapterId": "436c69b0-a347-47d4-bc51-8e6bd169ccda",
+            "title": "🎥 Video: Computer Vision: De Píxeles a Reconocimiento Inteligente",
+            "description": "Video explicativo de la  IA en Visión por Computadora. Duración aproximada: 25-30 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 27
+          },
+          "leccion-3": {
+            "chapterId": "617b886e-ade4-4177-8a89-33a25ca7ffcf",
+            "title": "📖 Lectura: Estudio de Caso: Diagnóstico médico con IA en hospitales de Stanford",
+            "description": "Análisis detallado de caso real de la industria. Tiempo de lectura: 15-20 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 28
+          },
+          "leccion-4": {
+            "chapterId": "b56de8f3-a06d-4c36-bcb9-ef70b89a3f2e",
+            "title": "🧪 Lab: Laboratorio Google Cloud: Clasificación de imágenes con Vision AI",
+            "description": "Laboratorio práctico usando Google Cloud Vertex AI. Duración: 45-60 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 29
+          },
+          "leccion-5": {
+            "chapterId": "5ec44bcb-d9eb-45cf-9ba8-845912d4f497",
+            "title": "📝 Quiz: Quiz de Computer Vision: CNN, filtros y aplicaciones médicas",
+            "description": "Evaluación teórico-práctica con 10 preguntas de opción múltiple. Tiempo: 15 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 30
+          }
+        }
+      },
+      "seccion-7": {
+        "name": "Sección 7",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "936c1d0c-db8f-44f1-9c60-8933e0216a6e",
+            "title": "Sección 7: Procesamiento de Lenguaje Natural (NLP)",
+            "description": "Análisis de texto, sentiment analysis y modelos de lenguaje como GPT",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 31
+          },
+          "leccion-2": {
+            "chapterId": "78d5a83f-e352-44a4-8ff0-5b75228ad390",
+            "title": "🎥 Video: NLP y LLMs: Cómo las Máquinas Entienden el Lenguaje Humano",
+            "description": "Video explicativo de la  Procesamiento de Lenguaje Natural (NLP). Duración aproximada: 25-30 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 32
+          },
+          "leccion-3": {
+            "chapterId": "b6634176-1a70-41e3-b6ff-88c45bf42c5d",
+            "title": "📖 Lectura: Estudio de Caso: ChatGPT y la revolución de los Large Language Models",
+            "description": "Análisis detallado de caso real de la industria. Tiempo de lectura: 15-20 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 33
+          },
+          "leccion-4": {
+            "chapterId": "cafdf437-3738-4686-9e5a-815bf3a0d5a9",
+            "title": "🧪 Lab: Laboratorio Google Cloud: Análisis de sentimientos con Natural Language AI",
+            "description": "Laboratorio práctico usando Google Cloud Vertex AI. Duración: 45-60 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 34
+          },
+          "leccion-5": {
+            "chapterId": "b87be460-9917-42ad-826f-591f26104940",
+            "title": "📝 Quiz: Quiz de NLP: Tokenización, embeddings y aplicaciones de chatbots",
+            "description": "Evaluación teórico-práctica con 10 preguntas de opción múltiple. Tiempo: 15 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 35
+          }
+        }
+      },
+      "seccion-8": {
+        "name": "Sección 8",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "485ebf11-ebca-46f3-bbba-7ac289828fc1",
+            "title": "Sección 8: Ética en IA y Futuro de la Tecnología",
+            "description": "Consideraciones éticas, bias en IA, regulaciones y tendencias futuras",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 36
+          },
+          "leccion-2": {
+            "chapterId": "fa288183-ae55-4831-8ac8-4ffe2622a8cc",
+            "title": "🎥 Video: IA Responsable: Ética, Bias y el Futuro de la Humanidad",
+            "description": "Video explicativo de la  Ética en IA y Futuro de la Tecnología. Duración aproximada: 25-30 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 37
+          },
+          "leccion-3": {
+            "chapterId": "895f9793-d253-4f9b-ab1f-f28d5bbb54b6",
+            "title": "📖 Lectura: Estudio de Caso: Casos de bias en IA y cómo las empresas los están solucionando",
+            "description": "Análisis detallado de caso real de la industria. Tiempo de lectura: 15-20 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 38
+          },
+          "leccion-4": {
+            "chapterId": "08df4c05-423f-471f-b67d-8c69c76de464",
+            "title": "🧪 Lab: Laboratorio Google Cloud: Evaluando bias en modelos y técnicas de mitigación",
+            "description": "Laboratorio práctico usando Google Cloud Vertex AI. Duración: 45-60 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 39
+          },
+          "leccion-5": {
+            "chapterId": "4f904bc6-c97c-4920-8cae-6251dcb4f680",
+            "title": "📝 Quiz: Quiz Final: Ética, responsabilidad y planificación de proyectos IA",
+            "description": "Evaluación teórico-práctica con 10 preguntas de opción múltiple. Tiempo: 15 minutos.",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 40
+          }
+        }
+      }
+    },
+    "createdAt": "2025-07-13T15:08:47.286Z",
+    "updatedAt": "2025-07-20T23:02:04.898Z"
+  },
+  "inteligencia-artificial-avanza": {
+    "id": "81153263-7af4-442c-bec6-a56b17e4b47e",
+    "title": "Inteligencia Artificial Avanzado",
+    "description": "Curso especializado en deep learning avanzado, GANs, transformers e investigación en IA.",
+    "categoryId": "dc43845f-d921-439a-9404-f35b31196396",
+    "categoryName": "Inteligencia Artificial",
+    "totalChapters": 5,
+    "secciones": {
+      "seccion-1": {
+        "name": "Sección 1",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "8783a281-6b67-45cf-8d3e-999cd91763b9",
+            "title": "Módulo 1",
+            "description": "Contenido del módulo 1 del curso Inteligencia Artificial Avanzado",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 1
+          },
+          "leccion-2": {
+            "chapterId": "4da8ddba-bdfc-4727-a2b2-6ec59ec0ee95",
+            "title": "Módulo 2",
+            "description": "Contenido del módulo 2 del curso Inteligencia Artificial Avanzado",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 2
+          },
+          "leccion-3": {
+            "chapterId": "5f84f951-deaa-426b-8384-e30607715c21",
+            "title": "Módulo 3",
+            "description": "Contenido del módulo 3 del curso Inteligencia Artificial Avanzado",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 3
+          },
+          "leccion-4": {
+            "chapterId": "70fab6eb-6d4c-4f65-8b24-8d9ef671de8c",
+            "title": "Módulo 4",
+            "description": "Contenido del módulo 4 del curso Inteligencia Artificial Avanzado",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 4
+          },
+          "leccion-5": {
+            "chapterId": "a228a1db-27a5-47f4-be43-95e4a315de53",
+            "title": "Módulo 5",
+            "description": "Contenido del módulo 5 del curso Inteligencia Artificial Avanzado",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 5
+          }
+        }
+      }
+    },
+    "createdAt": "2025-07-13T01:07:44.100Z",
+    "updatedAt": "2025-07-13T01:07:44.100Z"
+  },
+  "inteligencia-artificial-interm": {
+    "id": "b072bafe-e73c-4394-92e0-b22918f3abb5",
+    "title": "Inteligencia Artificial Intermedio",
+    "description": "Curso avanzado de machine learning, redes neuronales y técnicas de optimización con proyectos prácticos.",
+    "categoryId": "dc43845f-d921-439a-9404-f35b31196396",
+    "categoryName": "Inteligencia Artificial",
+    "totalChapters": 5,
+    "secciones": {
+      "seccion-1": {
+        "name": "Sección 1",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "dd11ce28-8cf6-4bda-b7d7-19b8f7176755",
+            "title": "Módulo 1",
+            "description": "Contenido del módulo 1 del curso Inteligencia Artificial Intermedio",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 1
+          },
+          "leccion-2": {
+            "chapterId": "47135ca2-16a0-486b-ae53-d2a55c3ca916",
+            "title": "Módulo 2",
+            "description": "Contenido del módulo 2 del curso Inteligencia Artificial Intermedio",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 2
+          },
+          "leccion-3": {
+            "chapterId": "a2389a79-b562-4e15-8eb6-10a1ec256667",
+            "title": "Módulo 3",
+            "description": "Contenido del módulo 3 del curso Inteligencia Artificial Intermedio",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 3
+          },
+          "leccion-4": {
+            "chapterId": "39e9179b-59d2-4dea-93cf-f621e4aa20ff",
+            "title": "Módulo 4",
+            "description": "Contenido del módulo 4 del curso Inteligencia Artificial Intermedio",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 4
+          },
+          "leccion-5": {
+            "chapterId": "4dadf364-8357-4681-8502-99da94db3486",
+            "title": "Módulo 5",
+            "description": "Contenido del módulo 5 del curso Inteligencia Artificial Intermedio",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 5
+          }
+        }
+      }
+    },
+    "createdAt": "2025-07-13T01:07:41.301Z",
+    "updatedAt": "2025-07-13T01:07:41.301Z"
+  },
+  "machine-learning-con-python-de": {
+    "id": "b959ca5a-a66c-477e-b7e0-8447417d86c9",
+    "title": "Machine Learning con Python desde Cero",
+    "description": "Aprende los fundamentos de Machine Learning con Python. Incluye redes neuronales, algoritmos de clasificación y regresión, y proyectos prácticos con scikit-learn y TensorFlow.",
+    "categoryId": "6460e4b4-a90d-40b5-af25-ebd9ae72542b",
+    "categoryName": "Machine Learning",
+    "totalChapters": 4,
+    "secciones": {
+      "seccion-1": {
+        "name": "Sección 1",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "3e080fa6-eb28-4ab7-9bc2-3b7b88aab4bd",
+            "title": "Introducción al Machine Learning",
+            "description": "Qué es ML, tipos de aprendizaje y aplicaciones reales",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 1
+          },
+          "leccion-2": {
+            "chapterId": "744b2377-0f94-42f3-801e-bc3b073b6b35",
+            "title": "Configuración del Entorno Python",
+            "description": "Instalación de Python, Jupyter, pandas, numpy y scikit-learn",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 2
+          },
+          "leccion-3": {
+            "chapterId": "d1723ded-e4d4-45f7-9c8c-174350ab581c",
+            "title": "Algoritmos de Regresión",
+            "description": "Regresión lineal, polinomial y logística con ejemplos prácticos",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 3
+          },
+          "leccion-4": {
+            "chapterId": "917168ae-26df-41ec-884e-173d6e10707e",
+            "title": "Algoritmos de Clasificación",
+            "description": "Decision Trees, Random Forest, SVM y evaluación de modelos",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 4
+          }
+        }
+      }
+    },
+    "createdAt": "2025-07-07T06:30:16.497Z",
+    "updatedAt": "2025-07-07T06:30:16.497Z"
+  },
+  "matemticas-bsicas-para-ia": {
+    "id": "dce13feb-b7b1-4716-ab5c-7d9d4e57e86d",
+    "title": "Matemáticas Básicas para IA",
+    "description": "Fundamentos matemáticos para IA: álgebra, funciones, teoría de conjuntos y lógica.",
+    "categoryId": "646e4d4b-e93e-496c-8da2-ffd021d2e47a",
+    "categoryName": "Matemáticas para IA",
+    "totalChapters": 5,
+    "secciones": {
+      "seccion-1": {
+        "name": "Sección 1",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "8636c209-88d5-4b66-abdf-bad0717815ef",
+            "title": "Módulo 1",
+            "description": "Contenido del módulo 1 del curso Matemáticas Básicas para IA",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 1
+          },
+          "leccion-2": {
+            "chapterId": "3fcc7d36-f791-4ce8-8ccf-a5587f16d8d6",
+            "title": "Módulo 2",
+            "description": "Contenido del módulo 2 del curso Matemáticas Básicas para IA",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 2
+          },
+          "leccion-3": {
+            "chapterId": "0199eddd-203a-4cc4-985e-c49384e7317a",
+            "title": "Módulo 3",
+            "description": "Contenido del módulo 3 del curso Matemáticas Básicas para IA",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 3
+          },
+          "leccion-4": {
+            "chapterId": "3c74d282-b00e-4b78-abb5-32b4b12d8062",
+            "title": "Módulo 4",
+            "description": "Contenido del módulo 4 del curso Matemáticas Básicas para IA",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 4
+          },
+          "leccion-5": {
+            "chapterId": "66655d24-c755-4599-87ff-6d596dffd6b7",
+            "title": "Módulo 5",
+            "description": "Contenido del módulo 5 del curso Matemáticas Básicas para IA",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 5
+          }
+        }
+      }
+    },
+    "createdAt": "2025-07-13T01:07:49.947Z",
+    "updatedAt": "2025-07-13T01:07:49.947Z"
+  },
+  "procesamiento-de-lenguaje-natu": {
+    "id": "6739f03c-4923-46e2-a430-5f88f2a05326",
+    "title": "Procesamiento de Lenguaje Natural (NLP)",
+    "description": "Aprende a procesar y analizar texto con IA. Incluye análisis de sentimientos, chatbots, y modelos de lenguaje como GPT.",
+    "categoryId": "6460e4b4-a90d-40b5-af25-ebd9ae72542b",
+    "categoryName": "Machine Learning",
+    "totalChapters": 3,
+    "secciones": {
+      "seccion-1": {
+        "name": "Sección 1",
+        "lecciones": {
+          "leccion-1": {
+            "chapterId": "728ac66b-af14-4018-91a2-6fe5dc92ea06",
+            "title": "Introducción al NLP",
+            "description": "Conceptos básicos y aplicaciones del procesamiento de lenguaje",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 1
+          },
+          "leccion-2": {
+            "chapterId": "87bffd9e-dec1-459a-a625-9d3131ffbb83",
+            "title": "Preprocesamiento de Texto",
+            "description": "Tokenización, stemming, lemmatización y limpieza de datos",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 2
+          },
+          "leccion-3": {
+            "chapterId": "3920229e-87e0-4a8c-b69d-86a9ecec1973",
+            "title": "Análisis de Sentimientos",
+            "description": "Clasificación de emociones en texto con NLTK y spaCy",
+            "videoUrl": null,
+            "hasVideo": false,
+            "position": 3
+          }
+        }
+      }
+    },
+    "createdAt": "2025-07-07T06:30:17.933Z",
+    "updatedAt": "2025-07-07T06:30:17.933Z"
+  }
+}

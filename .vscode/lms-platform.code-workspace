@@ -1,0 +1,213 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true
+    },
+    "docker.enableDockerComposeLanguageService": true,
+    "docker.dockerComposeDetection": "on",
+    "docker.commands.build": "docker build -t lms-platform .",
+    "docker.commands.run": "docker run -p 3000:3000 lms-platform",
+    "docker.attachShellCommand.linuxContainer": "/bin/sh",
+    "docker.attachShellCommand.windowsContainer": "powershell",
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/.git": true,
+      "**/.DS_Store": true,
+      "**/Thumbs.db": true,
+      "**/.next": true,
+      "**/dist": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/.git": true,
+      "**/.next": true,
+      "**/dist": true
+    },
+    "typescript.preferences.includePackageJsonAutoImports": "auto",
+    "emmet.includeLanguages": {
+      "javascript": "javascriptreact",
+      "typescript": "typescriptreact"
+    },
+    "git.autofetch": true,
+    "git.autoStash": true,
+    "terminal.integrated.defaultProfile.windows": "Git Bash",
+    "terminal.integrated.profiles.windows": {
+      "Docker": {
+        "path": "docker",
+        "args": ["exec", "-it", "lms-platform-dev", "/bin/sh"]
+      }
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-vscode.vscode-docker",
+      "ms-kubernetes-tools.vscode-kubernetes-tools",
+      "ms-azuretools.vscode-docker",
+      "bradlc.vscode-tailwindcss",
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "ms-vscode.vscode-json",
+      "ms-vscode.vscode-typescript-next",
+      "bradlc.vscode-tailwindcss",
+      "formulahendry.auto-rename-tag",
+      "christian-kohler.path-intellisense",
+      "ms-vscode.vscode-yaml",
+      "redhat.vscode-yaml",
+      "ms-python.python",
+      "ms-toolsai.jupyter",
+      "GitHub.copilot",
+      "GitHub.copilot-chat",
+      "ms-vscode.vscode-github-actions",
+      "ms-vscode.remote-containers",
+      "ms-vscode-remote.remote-containers",
+      "ms-vscode.remote-wsl",
+      "ms-vscode.vscode-docker-compose",
+      "ms-kubernetes-tools.vscode-kubernetes-tools",
+      "ms-vscode.vscode-prometheus",
+      "ms-vscode.vscode-grafana"
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Next.js: debug server-side",
+        "type": "node",
+        "request": "launch",
+        "program": "${workspaceFolder}/node_modules/.bin/next",
+        "args": ["dev"],
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "NODE_OPTIONS": "--inspect"
+        }
+      },
+      {
+        "name": "Next.js: debug client-side",
+        "type": "chrome",
+        "request": "launch",
+        "url": "http://localhost:3000",
+        "webRoot": "${workspaceFolder}"
+      },
+      {
+        "name": "Docker: Attach to Node",
+        "type": "node",
+        "request": "attach",
+        "port": 9229,
+        "address": "localhost",
+        "localRoot": "${workspaceFolder}",
+        "remoteRoot": "/app",
+        "protocol": "inspector"
+      }
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Docker: Build",
+        "type": "shell",
+        "command": "docker",
+        "args": ["build", "-t", "lms-platform", "."],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Docker: Run Development",
+        "type": "shell",
+        "command": "docker-compose",
+        "args": ["-f", "docker-compose.yml", "up", "-d"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Docker: Stop Development",
+        "type": "shell",
+        "command": "docker-compose",
+        "args": ["-f", "docker-compose.yml", "down"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Docker: Logs",
+        "type": "shell",
+        "command": "docker-compose",
+        "args": ["-f", "docker-compose.yml", "logs", "-f"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "K8s: Apply",
+        "type": "shell",
+        "command": "kubectl",
+        "args": ["apply", "-f", "k8s/"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "K8s: Get Pods",
+        "type": "shell",
+        "command": "kubectl",
+        "args": ["get", "pods", "-n", "lms-platform"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "K8s: Port Forward",
+        "type": "shell",
+        "command": "kubectl",
+        "args": ["port-forward", "svc/lms-platform-service", "8080:80", "-n", "lms-platform"],
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": [],
+        "isBackground": true
+      }
+    ]
+  }
+}

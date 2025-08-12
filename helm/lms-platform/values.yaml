@@ -1,0 +1,348 @@
+# ===========================================
+# VALUES.YAML - LMS PLATFORM HELM CHART
+# Configuración principal del chart
+# ===========================================
+
+# ===========================================
+# CONFIGURACIÓN GLOBAL
+# ===========================================
+global:
+  imageRegistry: "gcr.io"
+  imagePullSecrets: []
+  storageClass: "standard-rwo"
+
+# ===========================================
+# IMAGEN DE LA APLICACIÓN
+# ===========================================
+image:
+  registry: gcr.io
+  repository: ai-academy-461719/lms-platform
+  tag: "latest"
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+# ===========================================
+# CONFIGURACIÓN DE DEPLOYMENT
+# ===========================================
+replicaCount: 3
+
+nameOverride: ""
+fullnameOverride: ""
+
+# ===========================================
+# SERVICE ACCOUNT
+# ===========================================
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# ===========================================
+# CONFIGURACIÓN DE SEGURIDAD
+# ===========================================
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "3000"
+  prometheus.io/path: "/api/metrics"
+
+podSecurityContext:
+  fsGroup: 1001
+  runAsNonRoot: true
+  runAsUser: 1001
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1001
+
+# ===========================================
+# RECURSOS
+# ===========================================
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+# ===========================================
+# AUTOSCALING
+# ===========================================
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# ===========================================
+# NETWORKING
+# ===========================================
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+  annotations: {}
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+  hosts:
+    - host: lms.yourdomain.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: lms-platform-tls
+      hosts:
+        - lms.yourdomain.com
+
+# ===========================================
+# VARIABLES DE ENTORNO
+# ===========================================
+env:
+  NODE_ENV: "production"
+  NEXT_PUBLIC_APP_URL: "https://lms.yourdomain.com"
+  PORT: "3000"
+
+# Variables desde secrets
+envFromSecret:
+  - name: lms-platform-secrets
+    keys:
+      - DATABASE_URL
+      - CLERK_SECRET_KEY
+      - STRIPE_API_KEY
+      - STRIPE_WEBHOOK_SECRET
+      - MUX_TOKEN_ID
+      - MUX_TOKEN_SECRET
+      - UPLOADTHING_SECRET
+      - UPLOADTHING_APP_ID
+      - GOOGLE_CLOUD_PROJECT_ID
+      - GOOGLE_CLOUD_BUCKET_NAME
+
+# Variables desde configmaps
+envFromConfigMap:
+  - name: lms-platform-config
+    keys:
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+
+# ===========================================
+# HEALTH CHECKS
+# ===========================================
+livenessProbe:
+  httpGet:
+    path: /api/health
+    port: 3000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /api/health
+    port: 3000
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# ===========================================
+# VOLÚMENES
+# ===========================================
+persistence:
+  enabled: true
+  storageClass: "standard-rwo"
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  annotations: {}
+
+volumes:
+  - name: google-credentials
+    secret:
+      secretName: google-cloud-credentials
+      optional: true
+
+volumeMounts:
+  - name: google-credentials
+    mountPath: /app/credentials
+    readOnly: true
+
+# ===========================================
+# NODE SELECTOR Y TOLERATIONS
+# ===========================================
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - lms-platform
+        topologyKey: kubernetes.io/hostname
+
+# ===========================================
+# CONFIGURACIÓN DE BASE DE DATOS
+# ===========================================
+mysql:
+  enabled: false  # Usar Cloud SQL en producción
+  auth:
+    rootPassword: ""
+    database: lms_platform
+    username: lms_user
+    password: ""
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "standard-rwo"
+      size: 20Gi
+
+# Configuración para Cloud SQL Proxy
+cloudSqlProxy:
+  enabled: true
+  image:
+    repository: gcr.io/cloudsql-docker/gce-proxy
+    tag: "1.33.2"
+    pullPolicy: IfNotPresent
+  instances: "ai-academy-461719:us-central1:lms-mysql"
+  credentials:
+    secretName: "cloudsql-key"
+    key: "service-account.json"
+
+# ===========================================
+# CONFIGURACIÓN DE REDIS
+# ===========================================
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: ""
+  master:
+    persistence:
+      enabled: true
+      storageClass: "standard-rwo"
+      size: 8Gi
+  replica:
+    replicaCount: 1
+
+# ===========================================
+# NGINX LOAD BALANCER
+# ===========================================
+nginx:
+  enabled: true
+  image:
+    repository: nginx
+    tag: "alpine"
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  service:
+    type: ClusterIP
+    port: 80
+
+# ===========================================
+# MONITOREO
+# ===========================================
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    path: /api/metrics
+    labels:
+      release: prometheus
+
+prometheus:
+  enabled: false  # Usar Prometheus externo
+
+grafana:
+  enabled: false  # Usar Grafana externo
+
+# ===========================================
+# BACKUP
+# ===========================================
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention: "30d"
+  storage:
+    type: "gcs"
+    bucket: "lms-platform-backups"
+
+# ===========================================
+# TESTING
+# ===========================================
+tests:
+  enabled: true
+  image:
+    repository: curlimages/curl
+    tag: latest
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+# ===========================================
+# CONFIGURACIÓN ESPECÍFICA DEL ENTORNO
+# ===========================================
+environment: production
+
+# Development overrides
+development:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  env:
+    NODE_ENV: "development"
+    NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+
+# Staging overrides
+staging:
+  replicaCount: 2
+  autoscaling:
+    maxReplicas: 5
+  ingress:
+    hosts:
+      - host: staging-lms.yourdomain.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: staging-lms-platform-tls
+        hosts:
+          - staging-lms.yourdomain.com

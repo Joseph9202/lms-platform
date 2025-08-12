@@ -1,0 +1,315 @@
+# ===========================================
+# ALERTMANAGER CONFIGURATION - LMS PLATFORM
+# Configuración de alertas y notificaciones
+# ===========================================
+
+global:
+  # SMTP configuration for email alerts
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'alerts@lmsplatform.com'
+  smtp_auth_username: 'alerts@lmsplatform.com'
+  smtp_auth_password: 'your_smtp_password'
+  smtp_require_tls: true
+
+  # Default notification settings
+  resolve_timeout: 5m
+
+# Templates directory
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# ===========================================
+# ROUTING CONFIGURATION
+# ===========================================
+
+route:
+  # Default receiver for all alerts
+  receiver: 'default-receiver'
+  
+  # Grouping configuration
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+
+  # Routing tree
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 0s
+      group_interval: 1m
+      repeat_interval: 5m
+      routes:
+        # Database critical alerts
+        - match:
+            category: database
+          receiver: 'database-critical'
+        
+        # Security critical alerts
+        - match:
+            category: security
+          receiver: 'security-critical'
+
+    # Warning alerts - standard notification
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 30m
+
+    # Infrastructure alerts
+    - match:
+        category: infrastructure
+      receiver: 'infrastructure-alerts'
+      group_interval: 5m
+      repeat_interval: 30m
+
+    # Business alerts
+    - match:
+        category: business
+      receiver: 'business-alerts'
+      group_interval: 10m
+      repeat_interval: 1h
+
+    # Development alerts (lower priority)
+    - match:
+        environment: development
+      receiver: 'dev-alerts'
+      group_interval: 15m
+      repeat_interval: 2h
+
+# ===========================================
+# INHIBITION RULES
+# ===========================================
+
+inhibit_rules:
+  # Inhibit any alert with 'critical' severity if there's an instance down
+  - source_match:
+      alertname: InstanceDown
+    target_match:
+      severity: critical
+    equal: ['instance']
+
+  # Inhibit database alerts if the whole instance is down
+  - source_match:
+      alertname: InstanceDown
+    target_match:
+      category: database
+    equal: ['instance']
+
+  # Inhibit application alerts during maintenance
+  - source_match:
+      alertname: MaintenanceMode
+    target_match_re:
+      category: (application|business)
+    equal: ['instance']
+
+# ===========================================
+# RECEIVERS CONFIGURATION
+# ===========================================
+
+receivers:
+  # Default receiver
+  - name: 'default-receiver'
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+        channel: '#lms-alerts'
+        title: 'LMS Platform Alert'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          *Details:*
+          {{ range .Labels.SortedPairs }} • *{{ .Name }}:* {{ .Value }}
+          {{ end }}
+          {{ end }}
+        send_resolved: true
+
+  # Critical alerts receiver
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'critical-alerts@lmsplatform.com'
+        subject: '🚨 CRITICAL: LMS Platform Alert'
+        body: |
+          <h2>🚨 CRITICAL ALERT</h2>
+          <p><strong>Environment:</strong> {{ .GroupLabels.environment }}</p>
+          <p><strong>Service:</strong> {{ .GroupLabels.service }}</p>
+          
+          {{ range .Alerts }}
+          <div style="border: 2px solid red; padding: 10px; margin: 10px 0;">
+            <h3>{{ .Annotations.summary }}</h3>
+            <p><strong>Description:</strong> {{ .Annotations.description }}</p>
+            <p><strong>Runbook:</strong> <a href="{{ .Annotations.runbook_url }}">{{ .Annotations.runbook_url }}</a></p>
+            
+            <h4>Labels:</h4>
+            <ul>
+            {{ range .Labels.SortedPairs }}
+              <li><strong>{{ .Name }}:</strong> {{ .Value }}</li>
+            {{ end }}
+            </ul>
+            
+            <p><strong>Started:</strong> {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}</p>
+            {{ if .EndsAt }}
+            <p><strong>Ended:</strong> {{ .EndsAt.Format "2006-01-02 15:04:05 UTC" }}</p>
+            {{ end }}
+          </div>
+          {{ end }}
+        html: true
+    
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+        channel: '#lms-critical'
+        color: 'danger'
+        title: '🚨 CRITICAL ALERT'
+        text: |
+          {{ range .Alerts }}
+          *🚨 CRITICAL: {{ .Annotations.summary }}*
+          
+          *Description:* {{ .Annotations.description }}
+          *Environment:* {{ .Labels.environment }}
+          *Service:* {{ .Labels.service }}
+          *Severity:* {{ .Labels.severity }}
+          
+          *Runbook:* {{ .Annotations.runbook_url }}
+          
+          {{ if .Labels.instance }}*Instance:* {{ .Labels.instance }}{{ end }}
+          {{ if .Labels.job }}*Job:* {{ .Labels.job }}{{ end }}
+          {{ end }}
+        send_resolved: true
+
+  # Database critical alerts
+  - name: 'database-critical'
+    email_configs:
+      - to: 'dba@lmsplatform.com'
+        subject: '🗄️ DATABASE CRITICAL: LMS Platform'
+        body: |
+          DATABASE CRITICAL ALERT
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Database: {{ .Labels.database }}
+          Instance: {{ .Labels.instance }}
+          Started: {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+        channel: '#lms-database'
+        color: 'danger'
+        title: '🗄️ DATABASE CRITICAL'
+        text: |
+          {{ range .Alerts }}
+          *🗄️ DATABASE CRITICAL: {{ .Annotations.summary }}*
+          *Database:* {{ .Labels.database }}
+          *Instance:* {{ .Labels.instance }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+
+  # Security critical alerts
+  - name: 'security-critical'
+    email_configs:
+      - to: 'security@lmsplatform.com'
+        subject: '🔒 SECURITY ALERT: LMS Platform'
+        body: |
+          SECURITY CRITICAL ALERT
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Source IP: {{ .Labels.remote_addr }}
+          User Agent: {{ .Labels.user_agent }}
+          Started: {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+        channel: '#lms-security'
+        color: 'danger'
+        title: '🔒 SECURITY ALERT'
+        text: |
+          {{ range .Alerts }}
+          *🔒 SECURITY ALERT: {{ .Annotations.summary }}*
+          *Description:* {{ .Annotations.description }}
+          {{ if .Labels.remote_addr }}*Source IP:* {{ .Labels.remote_addr }}{{ end }}
+          {{ if .Labels.user_agent }}*User Agent:* {{ .Labels.user_agent }}{{ end }}
+          {{ end }}
+
+  # Warning alerts receiver
+  - name: 'warning-alerts'
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+        channel: '#lms-alerts'
+        color: 'warning'
+        title: '⚠️ Warning Alert'
+        text: |
+          {{ range .Alerts }}
+          *⚠️ Warning: {{ .Annotations.summary }}*
+          *Description:* {{ .Annotations.description }}
+          *Service:* {{ .Labels.service }}
+          {{ if .Labels.instance }}*Instance:* {{ .Labels.instance }}{{ end }}
+          {{ end }}
+        send_resolved: true
+
+  # Infrastructure alerts
+  - name: 'infrastructure-alerts'
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+        channel: '#lms-infrastructure'
+        color: 'warning'
+        title: '🖥️ Infrastructure Alert'
+        text: |
+          {{ range .Alerts }}
+          *🖥️ Infrastructure: {{ .Annotations.summary }}*
+          *Node:* {{ .Labels.instance }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+
+  # Business alerts
+  - name: 'business-alerts'
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+        channel: '#lms-business'
+        color: 'good'
+        title: '📊 Business Metrics Alert'
+        text: |
+          {{ range .Alerts }}
+          *📊 Business: {{ .Annotations.summary }}*
+          *Metric:* {{ .Labels.metric_name }}
+          *Value:* {{ .Labels.value }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+
+  # Development alerts
+  - name: 'dev-alerts'
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WEBHOOK_URL'
+        channel: '#lms-dev'
+        color: '#36a64f'
+        title: '🔧 Development Alert'
+        text: |
+          {{ range .Alerts }}
+          *🔧 Dev: {{ .Annotations.summary }}*
+          *Environment:* {{ .Labels.environment }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+        send_resolved: true
+
+# ===========================================
+# WEBHOOK CONFIGURATIONS
+# ===========================================
+
+# Example webhook configuration for external systems
+# receivers:
+#   - name: 'webhook-receiver'
+#     webhook_configs:
+#       - url: 'http://your-webhook-endpoint.com/alerts'
+#         send_resolved: true
+#         http_config:
+#           basic_auth:
+#             username: 'webhook_user'
+#             password: 'webhook_password'
+#         max_alerts: 0

@@ -1,0 +1,285 @@
+# ===========================================
+# BLACKBOX EXPORTER CONFIGURATION
+# Configuración para endpoint monitoring
+# ===========================================
+
+modules:
+  # ===========================================
+  # HTTP PROBES
+  # ===========================================
+  
+  # Basic HTTP check
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      valid_status_codes: []  # Defaults to 2xx
+      method: GET
+      no_follow_redirects: false
+      preferred_ip_protocol: "ip4"
+      fail_if_ssl: false
+      fail_if_not_ssl: false
+
+  # HTTP check with authentication
+  http_2xx_auth:
+    prober: http
+    timeout: 10s
+    http:
+      valid_status_codes: []
+      method: GET
+      headers:
+        Authorization: "Bearer YOUR_API_TOKEN"
+      no_follow_redirects: false
+      preferred_ip_protocol: "ip4"
+
+  # HTTP POST check
+  http_post_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      valid_status_codes: []
+      method: POST
+      headers:
+        Content-Type: "application/json"
+      body: '{"test": "probe"}'
+
+  # HTTP check with specific content
+  http_2xx_with_content:
+    prober: http
+    timeout: 5s
+    http:
+      valid_status_codes: []
+      method: GET
+      fail_if_body_not_matches_regexp:
+        - "OK"
+        - "healthy"
+      fail_if_body_matches_regexp:
+        - "error"
+        - "failed"
+
+  # HTTPS check with SSL verification
+  https_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      valid_status_codes: []
+      method: GET
+      preferred_ip_protocol: "ip4"
+      tls_config:
+        insecure_skip_verify: false
+
+  # ===========================================
+  # TCP PROBES
+  # ===========================================
+  
+  # Basic TCP connectivity
+  tcp_connect:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      preferred_ip_protocol: "ip4"
+
+  # MySQL TCP probe
+  tcp_mysql:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      preferred_ip_protocol: "ip4"
+      query_response:
+        - expect: "mysql"
+
+  # Redis TCP probe
+  tcp_redis:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      preferred_ip_protocol: "ip4"
+      query_response:
+        - send: "PING"
+        - expect: "PONG"
+
+  # ===========================================
+  # ICMP PROBES
+  # ===========================================
+  
+  # Basic ICMP ping
+  icmp:
+    prober: icmp
+    timeout: 5s
+    icmp:
+      preferred_ip_protocol: "ip4"
+
+  # ICMP with IPv6
+  icmp_ipv6:
+    prober: icmp
+    timeout: 5s
+    icmp:
+      preferred_ip_protocol: "ip6"
+
+  # ===========================================
+  # DNS PROBES
+  # ===========================================
+  
+  # DNS A record lookup
+  dns_a:
+    prober: dns
+    timeout: 5s
+    dns:
+      preferred_ip_protocol: "ip4"
+      query_name: "lms.yourdomain.com"
+      query_type: "A"
+
+  # DNS MX record lookup
+  dns_mx:
+    prober: dns
+    timeout: 5s
+    dns:
+      preferred_ip_protocol: "ip4"
+      query_name: "yourdomain.com"
+      query_type: "MX"
+
+  # ===========================================
+  # CUSTOM LMS PLATFORM PROBES
+  # ===========================================
+  
+  # LMS Health Check
+  lms_health_check:
+    prober: http
+    timeout: 10s
+    http:
+      valid_status_codes: [200]
+      method: GET
+      headers:
+        User-Agent: "LMS-HealthCheck/1.0"
+      fail_if_body_not_matches_regexp:
+        - '"status":"healthy"'
+      fail_if_body_matches_regexp:
+        - '"status":"unhealthy"'
+        - 'error'
+
+  # LMS API Check
+  lms_api_check:
+    prober: http
+    timeout: 15s
+    http:
+      valid_status_codes: [200, 401]  # 401 is OK for protected endpoints
+      method: GET
+      headers:
+        Accept: "application/json"
+        User-Agent: "LMS-APICheck/1.0"
+
+  # LMS Metrics Check
+  lms_metrics_check:
+    prober: http
+    timeout: 10s
+    http:
+      valid_status_codes: [200]
+      method: GET
+      headers:
+        Accept: "text/plain"
+      fail_if_body_not_matches_regexp:
+        - "lms_.*"
+        - "# HELP"
+
+  # LMS Database Connection Check
+  lms_db_check:
+    prober: http
+    timeout: 20s
+    http:
+      valid_status_codes: [200]
+      method: POST
+      headers:
+        Content-Type: "application/json"
+      body: '{"type": "readiness"}'
+      fail_if_body_not_matches_regexp:
+        - '"ready":true'
+
+  # External Services Check
+  external_service_check:
+    prober: http
+    timeout: 30s
+    http:
+      valid_status_codes: [200, 202]
+      method: GET
+      headers:
+        User-Agent: "LMS-ExternalCheck/1.0"
+      no_follow_redirects: true
+
+  # ===========================================
+  # SSL CERTIFICATE CHECKS
+  # ===========================================
+  
+  # SSL certificate expiry check
+  ssl_expiry:
+    prober: http
+    timeout: 5s
+    http:
+      method: GET
+      preferred_ip_protocol: "ip4"
+      tls_config:
+        insecure_skip_verify: false
+      fail_if_ssl: false
+      fail_if_not_ssl: true
+
+  # ===========================================
+  # ADVANCED HTTP CHECKS
+  # ===========================================
+  
+  # HTTP check with custom timing
+  http_timing:
+    prober: http
+    timeout: 30s
+    http:
+      valid_status_codes: []
+      method: GET
+      preferred_ip_protocol: "ip4"
+      ip_protocol_fallback: false
+
+  # HTTP check for static assets
+  http_static_assets:
+    prober: http
+    timeout: 10s
+    http:
+      valid_status_codes: [200, 304]
+      method: GET
+      headers:
+        Accept: "*/*"
+        Cache-Control: "no-cache"
+
+  # HTTP check for video streaming
+  http_video_stream:
+    prober: http
+    timeout: 20s
+    http:
+      valid_status_codes: [200, 206]  # 206 for partial content
+      method: HEAD
+      headers:
+        Range: "bytes=0-1023"
+
+  # ===========================================
+  # KUBERNETES SPECIFIC CHECKS
+  # ===========================================
+  
+  # Kubernetes API health
+  k8s_api_health:
+    prober: http
+    timeout: 10s
+    http:
+      valid_status_codes: [200]
+      method: GET
+      headers:
+        Authorization: "Bearer ${KUBE_TOKEN}"
+      tls_config:
+        insecure_skip_verify: true
+      fail_if_body_not_matches_regexp:
+        - '"ok"'
+
+  # Kubernetes service check
+  k8s_service_check:
+    prober: http
+    timeout: 15s
+    http:
+      valid_status_codes: [200, 401, 403]
+      method: GET
+      tls_config:
+        insecure_skip_verify: true

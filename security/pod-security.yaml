@@ -1,0 +1,265 @@
+# ===========================================
+# POD SECURITY STANDARDS
+# ===========================================
+# Configuración de seguridad a nivel de pod
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lms-platform
+  labels:
+    # Pod Security Standards
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+    
+    # Etiquetas adicionales
+    name: lms-platform
+    environment: production
+    team: devops
+    project: ai-academy
+
+---
+# ===========================================
+# SERVICE ACCOUNT
+# ===========================================
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lms-platform-sa
+  namespace: lms-platform
+  labels:
+    app: lms-platform
+    component: security
+automountServiceAccountToken: true
+
+---
+# ===========================================
+# CLUSTER ROLE
+# ===========================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: lms-platform-cluster-role
+  labels:
+    app: lms-platform
+    component: security
+rules:
+# Permisos mínimos necesarios para la aplicación
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+  
+# Permisos para métricas de Kubernetes
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["pods", "nodes"]
+  verbs: ["get", "list"]
+
+# Permisos para health checks
+- apiGroups: [""]
+  resources: ["endpoints"]
+  verbs: ["get", "list", "watch"]
+
+---
+# ===========================================
+# ROLE (namespace-scoped)
+# ===========================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lms-platform-role
+  namespace: lms-platform
+  labels:
+    app: lms-platform
+    component: security
+rules:
+# Permisos para leer secrets y configmaps en el namespace
+- apiGroups: [""]
+  resources: ["secrets", "configmaps"]
+  verbs: ["get", "list", "watch"]
+
+# Permisos para leer pods (para debugging)
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+
+# Permisos para leer services
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list", "watch"]
+
+---
+# ===========================================
+# CLUSTER ROLE BINDING
+# ===========================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: lms-platform-cluster-role-binding
+  labels:
+    app: lms-platform
+    component: security
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: lms-platform-cluster-role
+subjects:
+- kind: ServiceAccount
+  name: lms-platform-sa
+  namespace: lms-platform
+
+---
+# ===========================================
+# ROLE BINDING
+# ===========================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: lms-platform-role-binding
+  namespace: lms-platform
+  labels:
+    app: lms-platform
+    component: security
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: lms-platform-role
+subjects:
+- kind: ServiceAccount
+  name: lms-platform-sa
+  namespace: lms-platform
+
+---
+# ===========================================
+# POD SECURITY POLICY (deprecated but included for reference)
+# ===========================================
+# Nota: PSP está deprecated, usar Pod Security Standards en su lugar
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: lms-platform-psp
+  labels:
+    app: lms-platform
+    component: security
+spec:
+  # Configuraciones de seguridad
+  privileged: false
+  allowPrivilegeEscalation: false
+  
+  # Configuración de usuarios
+  runAsUser:
+    rule: MustRunAsNonRoot
+  runAsGroup:
+    rule: MustRunAs
+    ranges:
+    - min: 1000
+      max: 65535
+  
+  # Configuración de filesystem
+  fsGroup:
+    rule: MustRunAs
+    ranges:
+    - min: 1000
+      max: 65535
+  
+  # Configuración de capabilities
+  requiredDropCapabilities:
+  - ALL
+  allowedCapabilities: []
+  
+  # Configuración de volúmenes
+  volumes:
+  - configMap
+  - secret
+  - emptyDir
+  - persistentVolumeClaim
+  - projected
+  - downwardAPI
+  
+  # Configuración de red
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  
+  # Configuración de puertos
+  hostPorts:
+  - min: 0
+    max: 0
+  
+  # SELinux
+  seLinux:
+    rule: RunAsAny
+  
+  # AppArmor
+  annotations:
+    apparmor.security.beta.kubernetes.io/allowedProfileNames: runtime/default
+    apparmor.security.beta.kubernetes.io/defaultProfileName: runtime/default
+  
+  # Seccomp
+  seccompProfiles:
+  - runtime/default
+
+---
+# ===========================================
+# SECURITY CONTEXT CONSTRAINTS (OpenShift)
+# ===========================================
+# Solo para entornos OpenShift
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: lms-platform-scc
+  labels:
+    app: lms-platform
+    component: security
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegedContainer: false
+allowPrivilegeEscalation: false
+allowedCapabilities: []
+defaultAddCapabilities: []
+requiredDropCapabilities:
+- ALL
+fsGroup:
+  type: MustRunAs
+  ranges:
+  - min: 1000
+    max: 65535
+readOnlyRootFilesystem: false
+runAsUser:
+  type: MustRunAsNonRoot
+supplementalGroups:
+  type: MustRunAs
+  ranges:
+  - min: 1000
+    max: 65535
+volumes:
+- configMap
+- secret
+- emptyDir
+- persistentVolumeClaim
+- projected
+- downwardAPI
+users:
+- system:serviceaccount:lms-platform:lms-platform-sa
+
+---
+# ===========================================
+# POD DISRUPTION BUDGET
+# ===========================================
+# Para mantener disponibilidad durante actualizaciones
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: lms-platform-pdb
+  namespace: lms-platform
+  labels:
+    app: lms-platform
+    component: security
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: lms-platform

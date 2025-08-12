@@ -1,0 +1,65 @@
+# ===========================================
+# KUBERNETES NAMESPACE - LMS PLATFORM
+# ===========================================
+# Namespace para aislar recursos del LMS
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lms-platform
+  labels:
+    app: lms-platform
+    environment: production
+---
+# ===========================================
+# CONFIGMAP - CONFIGURACIÓN APLICACIÓN
+# ===========================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lms-config
+  namespace: lms-platform
+data:
+  NODE_ENV: "production"
+  NEXT_PUBLIC_APP_URL: "https://your-domain.com"
+  GOOGLE_CLOUD_PROJECT_ID: "ai-academy-461719"
+  GOOGLE_CLOUD_BUCKET_NAME: "tu-lms-videos-bucket"
+  PORT: "3000"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+---
+# ===========================================
+# SECRET - CREDENCIALES SENSIBLES
+# ===========================================
+apiVersion: v1
+kind: Secret
+metadata:
+  name: lms-secrets
+  namespace: lms-platform
+type: Opaque
+data:
+  # Base64 encoded secrets - reemplazar con valores reales
+  DATABASE_URL: <BASE64_ENCODED_DATABASE_URL>
+  CLERK_SECRET_KEY: <BASE64_ENCODED_CLERK_SECRET>
+  STRIPE_API_KEY: <BASE64_ENCODED_STRIPE_KEY>
+  STRIPE_WEBHOOK_SECRET: <BASE64_ENCODED_STRIPE_WEBHOOK>
+  MUX_TOKEN_ID: <BASE64_ENCODED_MUX_TOKEN_ID>
+  MUX_TOKEN_SECRET: <BASE64_ENCODED_MUX_TOKEN_SECRET>
+  UPLOADTHING_SECRET: <BASE64_ENCODED_UPLOADTHING_SECRET>
+  REDIS_PASSWORD: <BASE64_ENCODED_REDIS_PASSWORD>
+---
+# ===========================================
+# PERSISTENT VOLUME CLAIM - GOOGLE CREDENTIALS
+# ===========================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: google-credentials-pvc
+  namespace: lms-platform
+spec:
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard

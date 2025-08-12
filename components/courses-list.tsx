@@ -22,11 +22,11 @@ export const CoursesList = ({
             key={item.id}
             id={item.id}
             title={item.title}
-            imageUrl={item.imageUrl!}
+            imageUrl={item.imageUrl || "/placeholder.jpg"}
             chaptersLength={item.chapters.length}
-            price={item.price!}
+            price={item.price || 0}
             progress={item.progress}
-            category={item?.category?.name!}
+            category={item?.category?.name || "Sin categoría"}
           />
         ))}
       </div>

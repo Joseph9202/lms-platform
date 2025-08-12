@@ -1,0 +1,254 @@
+# ===========================================
+# DOCKER COMPOSE - TESTING ENVIRONMENT
+# Configuración completa para testing automatizado
+# ===========================================
+
+version: '3.8'
+
+services:
+  # ===========================================
+  # APLICACIÓN BAJO TESTING
+  # ===========================================
+  
+  lms-app-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: testing
+    container_name: lms-platform-test
+    environment:
+      - NODE_ENV=test
+      - DATABASE_URL=mysql://lms_user:lms_password@mysql-test:3306/lms_platform_test
+      - REDIS_URL=redis://redis-test:6379
+      - NEXT_PUBLIC_APP_URL=http://lms-app-test:3000
+      - CI=true
+      - HEADLESS=true
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - test_coverage:/app/coverage
+      - test_reports:/app/test-reports
+    depends_on:
+      mysql-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    networks:
+      - lms-test-network
+    command: npm run test:ci
+    profiles:
+      - testing
+
+  # ===========================================
+  # BASE DE DATOS DE TESTING
+  # ===========================================
+  
+  mysql-test:
+    image: mysql:8.0
+    container_name: lms-mysql-test
+    environment:
+      - MYSQL_ROOT_PASSWORD=testpassword
+      - MYSQL_DATABASE=lms_platform_test
+      - MYSQL_USER=lms_user
+      - MYSQL_PASSWORD=lms_password
+      - MYSQL_CHARSET=utf8mb4
+      - MYSQL_COLLATION=utf8mb4_unicode_ci
+    volumes:
+      - ./docker/mysql/test-init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./docker/mysql/test-config.cnf:/etc/mysql/conf.d/test.cnf
+    tmpfs:
+      - /var/lib/mysql  # Use tmpfs for faster testing
+    networks:
+      - lms-test-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "lms_user", "-plms_password"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+    profiles:
+      - testing
+
+  # ===========================================
+  # REDIS DE TESTING
+  # ===========================================
+  
+  redis-test:
+    image: redis:7-alpine
+    container_name: lms-redis-test
+    command: redis-server --save "" --appendonly no  # No persistence for testing
+    tmpfs:
+      - /data  # Use tmpfs for faster testing
+    networks:
+      - lms-test-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    profiles:
+      - testing
+
+  # ===========================================
+  # SELENIUM GRID PARA E2E TESTING
+  # ===========================================
+  
+  selenium-hub:
+    image: selenium/hub:latest
+    container_name: selenium-hub
+    ports:
+      - "4444:4444"
+    environment:
+      - GRID_MAX_SESSION=16
+      - GRID_BROWSER_TIMEOUT=300
+      - GRID_TIMEOUT=300
+    networks:
+      - lms-test-network
+    profiles:
+      - e2e
+
+  selenium-chrome:
+    image: selenium/node-chrome:latest
+    container_name: selenium-chrome
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+      - NODE_MAX_INSTANCES=4
+      - NODE_MAX_SESSION=4
+    depends_on:
+      - selenium-hub
+    networks:
+      - lms-test-network
+    profiles:
+      - e2e
+
+  selenium-firefox:
+    image: selenium/node-firefox:latest
+    container_name: selenium-firefox
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+      - NODE_MAX_INSTANCES=2
+      - NODE_MAX_SESSION=2
+    depends_on:
+      - selenium-hub
+    networks:
+      - lms-test-network
+    profiles:
+      - e2e
+
+  # ===========================================
+  # PERFORMANCE TESTING
+  # ===========================================
+  
+  k6-runner:
+    image: grafana/k6:latest
+    container_name: k6-performance-test
+    volumes:
+      - ./tests/k6:/scripts
+      - ./performance-results:/results
+    environment:
+      - TARGET_URL=http://lms-app-test:3000
+    networks:
+      - lms-test-network
+    command: run /scripts/load-test.js
+    profiles:
+      - performance
+
+  # ===========================================
+  # TESTING TOOLS Y UTILITIES
+  # ===========================================
+  
+  test-db-setup:
+    image: mysql:8.0
+    container_name: test-db-setup
+    environment:
+      - MYSQL_HOST=mysql-test
+      - MYSQL_ROOT_PASSWORD=testpassword
+      - MYSQL_DATABASE=lms_platform_test
+    volumes:
+      - ./tests/fixtures:/fixtures
+      - ./tests/scripts:/scripts
+    depends_on:
+      mysql-test:
+        condition: service_healthy
+    networks:
+      - lms-test-network
+    command: bash /scripts/setup-test-data.sh
+    profiles:
+      - setup
+
+  # Mock external services para testing
+  mock-services:
+    image: wiremock/wiremock:latest
+    container_name: mock-external-services
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./tests/mocks:/home/wiremock
+    command: --global-response-templating --verbose
+    networks:
+      - lms-test-network
+    profiles:
+      - testing
+      - e2e
+
+  # ===========================================
+  # TEST REPORTING
+  # ===========================================
+  
+  allure-report:
+    image: frankescobar/allure-docker-service
+    container_name: allure-test-reports
+    ports:
+      - "5050:5050"
+    environment:
+      - CHECK_RESULTS_EVERY_SECONDS=3
+      - KEEP_HISTORY=20
+    volumes:
+      - test_reports:/app/allure-results
+      - allure_reports:/app/default-reports
+    networks:
+      - lms-test-network
+    profiles:
+      - reporting
+
+  # Test results viewer
+  test-viewer:
+    image: nginx:alpine
+    container_name: test-results-viewer
+    ports:
+      - "8090:80"
+    volumes:
+      - test_coverage:/usr/share/nginx/html/coverage
+      - test_reports:/usr/share/nginx/html/reports
+      - ./tests/viewer/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - lms-test-network
+    profiles:
+      - reporting
+
+volumes:
+  test_coverage:
+    driver: local
+    labels:
+      - "com.lmsplatform.volume=test-coverage"
+  test_reports:
+    driver: local
+    labels:
+      - "com.lmsplatform.volume=test-reports"
+  allure_reports:
+    driver: local
+    labels:
+      - "com.lmsplatform.volume=allure-reports"
+
+networks:
+  lms-test-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.32.0.0/16
+          gateway: 172.32.0.1
+    labels:
+      - "com.lmsplatform.network=testing"

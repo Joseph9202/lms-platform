@@ -1,0 +1,85 @@
+# ===========================================
+# GRAFANA DATASOURCES CONFIGURATION
+# Configuración automática de fuentes de datos
+# ===========================================
+
+apiVersion: 1
+
+datasources:
+  # Prometheus - Métricas principales
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: 15s
+      queryTimeout: 60s
+      httpMethod: POST
+    secureJsonData: {}
+
+  # Loki - Logs
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: true
+    jsonData:
+      maxLines: 1000
+      timeout: 60
+    secureJsonData: {}
+
+  # Jaeger - Tracing
+  - name: Jaeger
+    type: jaeger
+    access: proxy
+    url: http://jaeger:16686
+    editable: true
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: 'loki'
+        spanStartTimeShift: '-1h'
+        spanEndTimeShift: '1h'
+        tags:
+          - key: 'service.name'
+            value: 'service'
+        filterByTraceID: false
+        filterBySpanID: false
+        customQuery: true
+        query: '{service_name="${__data.fields.service}"} |~ "${__data.fields.traceID}"'
+    secureJsonData: {}
+
+  # MySQL - Database metrics (via Prometheus)
+  - name: MySQL-Metrics
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    editable: true
+    jsonData:
+      timeInterval: 30s
+      queryTimeout: 60s
+      httpMethod: POST
+      exemplarTraceIdDestinations:
+        - name: trace_id
+          datasourceUid: jaeger
+    secureJsonData: {}
+
+  # Redis - Cache metrics (via Prometheus)  
+  - name: Redis-Metrics
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    editable: true
+    jsonData:
+      timeInterval: 30s
+      queryTimeout: 60s
+      httpMethod: POST
+    secureJsonData: {}
+
+  # TestData - Para desarrollo y pruebas
+  - name: TestData
+    type: testdata
+    access: proxy
+    isDefault: false
+    editable: true

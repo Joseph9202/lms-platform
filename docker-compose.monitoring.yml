@@ -1,0 +1,276 @@
+# ===========================================
+# DOCKER COMPOSE - MONITORING STACK
+# Stack completo de observabilidad y monitoreo
+# ===========================================
+
+version: '3.8'
+
+services:
+  # Prometheus - Metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: lms-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/monitoring/prometheus-advanced.yml:/etc/prometheus/prometheus.yml
+      - ./docker/monitoring/alert_rules_advanced.yml:/etc/prometheus/alert_rules.yml
+      - ./docker/monitoring/recording_rules.yml:/etc/prometheus/recording_rules.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+      - '--storage.tsdb.retention.time=15d'
+      - '--storage.tsdb.retention.size=10GB'
+    networks:
+      - lms-monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.lmsplatform.service=metrics-collection"
+      - "prometheus.enable=true"
+
+  # Grafana - Visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: lms-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel,grafana-clock-panel
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+    networks:
+      - lms-monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.lmsplatform.service=visualization"
+
+  # AlertManager - Alerting
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: lms-alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./docker/monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+    networks:
+      - lms-monitoring
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9093/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "com.lmsplatform.service=alerting"
+
+  # Node Exporter - System metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: lms-node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - lms-monitoring
+    restart: unless-stopped
+    labels:
+      - "com.lmsplatform.service=system-metrics"
+
+  # cAdvisor - Container metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: lms-cadvisor
+    ports:
+      - "8081:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    privileged: true
+    devices:
+      - /dev/kmsg
+    networks:
+      - lms-monitoring
+    restart: unless-stopped
+    labels:
+      - "com.lmsplatform.service=container-metrics"
+
+  # Redis Exporter - Redis metrics
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: lms-redis-exporter
+    ports:
+      - "9121:9121"
+    environment:
+      - REDIS_ADDR=redis://redis-dev:6379
+    depends_on:
+      - redis-dev
+    networks:
+      - lms-monitoring
+      - lms-dev-network
+    restart: unless-stopped
+    labels:
+      - "com.lmsplatform.service=redis-metrics"
+
+  # MySQL Exporter - Database metrics
+  mysql-exporter:
+    image: prom/mysqld-exporter:latest
+    container_name: lms-mysql-exporter
+    ports:
+      - "9104:9104"
+    environment:
+      - DATA_SOURCE_NAME=lms_user:lms_password@(mysql-dev:3306)/lms_platform_dev
+    depends_on:
+      - mysql-dev
+    networks:
+      - lms-monitoring
+      - lms-dev-network
+    restart: unless-stopped
+    labels:
+      - "com.lmsplatform.service=mysql-metrics"
+
+  # Nginx Prometheus Exporter
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: lms-nginx-exporter
+    ports:
+      - "9113:9113"
+    command:
+      - -nginx.scrape-uri=http://nginx-dev:80/nginx_status
+    depends_on:
+      - nginx-dev
+    networks:
+      - lms-monitoring
+      - lms-dev-network
+    restart: unless-stopped
+    labels:
+      - "com.lmsplatform.service=nginx-metrics"
+
+  # Jaeger - Distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: lms-jaeger
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "14268:14268"  # Jaeger collector
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+    networks:
+      - lms-monitoring
+    restart: unless-stopped
+    labels:
+      - "com.lmsplatform.service=tracing"
+
+  # Loki - Log aggregation
+  loki:
+    image: grafana/loki:latest
+    container_name: lms-loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./docker/monitoring/loki-config.yml:/etc/loki/loki-config.yml
+      - loki_data:/loki
+    command: -config.file=/etc/loki/loki-config.yml
+    networks:
+      - lms-monitoring
+    restart: unless-stopped
+    labels:
+      - "com.lmsplatform.service=logs"
+
+  # Promtail - Log collection
+  promtail:
+    image: grafana/promtail:latest
+    container_name: lms-promtail
+    volumes:
+      - ./docker/monitoring/promtail-config.yml:/etc/promtail/promtail-config.yml
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/promtail-config.yml
+    depends_on:
+      - loki
+    networks:
+      - lms-monitoring
+    restart: unless-stopped
+    labels:
+      - "com.lmsplatform.service=log-collection"
+
+  # Blackbox Exporter - Endpoint monitoring
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: lms-blackbox-exporter
+    ports:
+      - "9115:9115"
+    volumes:
+      - ./docker/monitoring/blackbox.yml:/etc/blackbox_exporter/config.yml
+    networks:
+      - lms-monitoring
+    restart: unless-stopped
+    labels:
+      - "com.lmsplatform.service=endpoint-monitoring"
+
+volumes:
+  prometheus_data:
+    driver: local
+    labels:
+      - "com.lmsplatform.volume=prometheus-data"
+  grafana_data:
+    driver: local
+    labels:
+      - "com.lmsplatform.volume=grafana-data"
+  alertmanager_data:
+    driver: local
+    labels:
+      - "com.lmsplatform.volume=alertmanager-data"
+  loki_data:
+    driver: local
+    labels:
+      - "com.lmsplatform.volume=loki-data"
+
+networks:
+  lms-monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.0.0/16
+          gateway: 172.31.0.1
+    labels:
+      - "com.lmsplatform.network=monitoring"
+  lms-dev-network:
+    external: true

@@ -1,0 +1,164 @@
+{{/*
+===========================================
+DEPLOYMENT TEMPLATE - LMS PLATFORM
+===========================================
+*/}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lms-platform.fullname" . }}
+  labels:
+    {{- include "lms-platform.labels" . | nindent 4 }}
+  annotations:
+    deployment.kubernetes.io/revision: "{{ .Release.Revision }}"
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  selector:
+    matchLabels:
+      {{- include "lms-platform.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+      labels:
+        {{- include "lms-platform.selectorLabels" . | nindent 8 }}
+        version: {{ .Values.image.tag | default .Chart.AppVersion }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "lms-platform.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      
+      {{- if .Values.cloudSqlProxy.enabled }}
+      # Cloud SQL Proxy sidecar
+      initContainers:
+        - name: cloudsql-proxy
+          image: {{ .Values.cloudSqlProxy.image.repository }}:{{ .Values.cloudSqlProxy.image.tag }}
+          imagePullPolicy: {{ .Values.cloudSqlProxy.image.pullPolicy }}
+          command:
+            - "/cloud_sql_proxy"
+            - "-instances={{ .Values.cloudSqlProxy.instances }}=tcp:5432"
+            - "-credential_file=/secrets/service-account.json"
+          volumeMounts:
+            - name: cloudsql-credentials
+              mountPath: /secrets
+              readOnly: true
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+      {{- end }}
+      
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          
+          env:
+            # Environment variables from values
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            
+            # Environment variables from ConfigMap
+            {{- if .Values.envFromConfigMap }}
+            {{- range .Values.envFromConfigMap }}
+            {{- range .keys }}
+            - name: {{ . }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ $.name }}
+                  key: {{ . }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            
+            # Environment variables from Secret
+            {{- if .Values.envFromSecret }}
+            {{- range .Values.envFromSecret }}
+            {{- range .keys }}
+            - name: {{ . }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $.name }}
+                  key: {{ . }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
+          
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          
+          volumeMounts:
+            {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- if .Values.persistence.enabled }}
+            - name: data
+              mountPath: /app/data
+            {{- end }}
+      
+      volumes:
+        {{- with .Values.volumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        
+        {{- if .Values.cloudSqlProxy.enabled }}
+        - name: cloudsql-credentials
+          secret:
+            secretName: {{ .Values.cloudSqlProxy.credentials.secretName }}
+            items:
+              - key: {{ .Values.cloudSqlProxy.credentials.key }}
+                path: service-account.json
+        {{- end }}
+        
+        {{- if .Values.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "lms-platform.fullname" . }}-data
+        {{- end }}
+      
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      
+      # Graceful shutdown
+      terminationGracePeriodSeconds: 30
